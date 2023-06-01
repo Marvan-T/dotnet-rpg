@@ -11,15 +11,26 @@ namespace dotnet_rpg.Controllers
     [Route("api/[controller]")] //api/Character (suffix is automatically removed)
     public class CharacterController : ControllerBase
     {
-        private static Character knight = new Character();
+        private static List<Character> characters = new List<Character> {
+            new Character(),
+            new Character { Name = "Sam" }
+        };
 
         //IACTIONRESULT - allows you to send the HTTP result + response for the actual request
         //APIController supports naming conventions (Get suffix means in a method name means it will be considered as a GET method)
         //ACTIONRESULT - extension of IACTIONRESULT - allows you to say which 'types' will be returned (helps with Swagger)
-        [HttpGet]
-        public ActionResult<Character> Get()
+        [HttpGet("GetAll")]
+        // [Route("GetAll")] - Same thing as above
+        public ActionResult<List<Character>> Get()
         {
-            return Ok(knight); //http 200 + the mock character (OK from ControllerBase)
+            return Ok(characters); //http 200 + the mock character (OK from ControllerBase)
+        }
+
+
+        [HttpGet]
+        public ActionResult<Character> GetSingleCharacter()
+        {
+            return Ok(characters[0]);
         }
     }
 }
