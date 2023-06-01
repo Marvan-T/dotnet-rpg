@@ -32,5 +32,13 @@ namespace dotnet_rpg.Controllers
         {
             return Ok(characters.FirstOrDefault(x => x.Id == id));
         }
+
+        [HttpPost]
+        public ActionResult<List<Character>> CreateCharacter(Character newCharacter)
+        {
+            characters.Add(newCharacter);
+            return Ok(characters);
+            // return CreatedAtAction(nameof(GetSingleCharacter), new {id = newCharacter.Id}, newCharacter); //Returns the newly created character + URI (location header) 
+        }
     }
 }
