@@ -13,7 +13,7 @@ namespace dotnet_rpg.Controllers
     {
         private static List<Character> characters = new List<Character> {
             new Character(),
-            new Character { Name = "Sam" }
+            new Character { Id = 1,  Name = "Sam" }
         };
 
         //IACTIONRESULT - allows you to send the HTTP result + response for the actual request
@@ -27,10 +27,10 @@ namespace dotnet_rpg.Controllers
         }
 
 
-        [HttpGet]
-        public ActionResult<Character> GetSingleCharacter()
+        [HttpGet("{id}")]
+        public ActionResult<Character> GetSingleCharacter(int id)
         {
-            return Ok(characters[0]);
+            return Ok(characters.FirstOrDefault(x => x.Id == id));
         }
     }
 }
