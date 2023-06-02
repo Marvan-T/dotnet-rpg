@@ -11,10 +11,14 @@ namespace dotnet_rpg.Controllers
     [Route("api/[controller]")] //api/Character (suffix is automatically removed)
     public class CharacterController : ControllerBase
     {
-        private static List<Character> characters = new List<Character> {
-            new Character(),
-            new Character { Id = 1,  Name = "Sam" }
-        };
+        
+        private readonly ICharacterService _characterService;
+        
+        // ctor - snippet to create the constructor 
+        public CharacterController(ICharacterService characterService)
+        {
+            _characterService = characterService;
+        }
 
         //IACTIONRESULT - allows you to send the HTTP result + response for the actual request
         //APIController supports naming conventions (Get suffix means in a method name means it will be considered as a GET method)
@@ -23,21 +27,20 @@ namespace dotnet_rpg.Controllers
         // [Route("GetAll")] - Same thing as above
         public ActionResult<List<Character>> Get()
         {
-            return Ok(characters); //http 200 + the mock character (OK from ControllerBase)
+            return Ok(_characterService.GetAllCharacters()); //http 200 + the mock character (OK from ControllerBase)
         }
 
 
         [HttpGet("{id}")]
         public ActionResult<Character> GetSingleCharacter(int id)
         {
-            return Ok(characters.FirstOrDefault(x => x.Id == id));
+            return Ok(_characterService.GetSingleCharacter(id));
         }
 
         [HttpPost]
         public ActionResult<List<Character>> CreateCharacter(Character newCharacter)
         {
-            characters.Add(newCharacter);
-            return Ok(characters);
+            return Ok(_characterService.CreateCharacter(newCharacter));
             // return CreatedAtAction(nameof(GetSingleCharacter), new {id = newCharacter.Id}, newCharacter); //Returns the newly created character + URI (location header) 
         }
     }
