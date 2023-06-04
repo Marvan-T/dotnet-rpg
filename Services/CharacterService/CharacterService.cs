@@ -15,26 +15,30 @@ namespace dotnet_rpg.Services.CharacterService
 
 
         // This is how you make a method asynchronous async Task<ReturnType>, have to add await in the method call (see controllera)
-        public async Task<List<Character>> CreateCharacter(Character newCharacter)
+        public async Task<ServiceResponse<List<Character>>> CreateCharacter(Character newCharacter)
         {
+            var serviceResponse = new ServiceResponse<List<Character>>();
             characters.Add(newCharacter);
-            return characters;
+            serviceResponse.Data = characters;
+            return serviceResponse;
         }
 
-        public async Task<Character> GetSingleCharacter(int id)
+        public async Task<ServiceResponse<Character>> GetSingleCharacter(int id)
         {
+           var serviceResponse = new ServiceResponse<Character>();
+
             //! -  null forgiving character
            var character =  characters.FirstOrDefault(x => x.Id == id);
         
-            if (character is not null)
-                return character;
-            
-            throw new KeyNotFoundException($"Character with id:{id} not found");
+            serviceResponse.Data = character;
+            return serviceResponse;
         }
 
-        public async Task<List<Character>> GetAllCharacters()
+        public async Task<ServiceResponse<List<Character>>> GetAllCharacters()
         {
-            return characters;
+            var serviceResponse = new ServiceResponse<List<Character>>();
+            serviceResponse.Data = characters;
+            return serviceResponse;
         }
 
     }
