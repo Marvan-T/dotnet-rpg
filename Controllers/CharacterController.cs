@@ -25,22 +25,22 @@ namespace dotnet_rpg.Controllers
         //ACTIONRESULT - extension of IACTIONRESULT - allows you to say which 'types' will be returned (helps with Swagger)
         [HttpGet("GetAll")]
         // [Route("GetAll")] - Same thing as above
-        public ActionResult<List<Character>> Get()
+        public async Task<ActionResult<List<Character>>> Get()
         {
-            return Ok(_characterService.GetAllCharacters()); //http 200 + the mock character (OK from ControllerBase)
+            return Ok(await _characterService.GetAllCharacters()); //http 200 + the mock characters (OK from ControllerBase)
         }
 
 
         [HttpGet("{id}")]
-        public ActionResult<Character> GetSingleCharacter(int id)
+        public async Task<ActionResult<Character>> GetSingleCharacter(int id)
         {
-            return Ok(_characterService.GetSingleCharacter(id));
+            return Ok(await _characterService.GetSingleCharacter(id));
         }
 
         [HttpPost]
-        public ActionResult<List<Character>> CreateCharacter(Character newCharacter)
+        public async Task<ActionResult<List<Character>>> CreateCharacter(Character newCharacter)
         {
-            return Ok(_characterService.CreateCharacter(newCharacter));
+            return Ok(await _characterService.CreateCharacter(newCharacter));
             // return CreatedAtAction(nameof(GetSingleCharacter), new {id = newCharacter.Id}, newCharacter); //Returns the newly created character + URI (location header) 
         }
     }
