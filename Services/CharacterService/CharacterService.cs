@@ -15,7 +15,7 @@ namespace dotnet_rpg.Services.CharacterService
 
 
         // This is how you make a method asynchronous async Task<ReturnType>, have to add await in the method call (see controllera)
-        public async Task<ServiceResponse<List<Character>>> CreateCharacter(Character newCharacter)
+        public async Task<ServiceResponse<List<GetCharacterResponseDto>>> CreateCharacter(AddCharacterRequestDto newCharacter)
         {
             var serviceResponse = new ServiceResponse<List<Character>>();
             characters.Add(newCharacter);
@@ -23,9 +23,9 @@ namespace dotnet_rpg.Services.CharacterService
             return serviceResponse;
         }
 
-        public async Task<ServiceResponse<Character>> GetSingleCharacter(int id)
+        public async Task<ServiceResponse<GetCharacterResponseDto>> GetSingleCharacter(int id)
         {
-           var serviceResponse = new ServiceResponse<Character>();
+           var serviceResponse = new ServiceResponse<GetCharacterResponseDto>();
 
             //! -  null forgiving character
            var character =  characters.FirstOrDefault(x => x.Id == id);
@@ -34,9 +34,9 @@ namespace dotnet_rpg.Services.CharacterService
             return serviceResponse;
         }
 
-        public async Task<ServiceResponse<List<Character>>> GetAllCharacters()
+        public async Task<ServiceResponse<List<GetCharacterResponseDto>>> GetAllCharacters()
         {
-            var serviceResponse = new ServiceResponse<List<Character>>();
+            var serviceResponse = new ServiceResponse<List<GetCharacterResponseDto>>();
             serviceResponse.Data = characters;
             return serviceResponse;
         }
