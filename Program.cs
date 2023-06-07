@@ -1,6 +1,7 @@
 global using dotnet_rpg.Models; //this is visible everywhere (first thing before other usings)
 global using dotnet_rpg.Services.CharacterService;
 global using dotnet_rpg.Dtos.Character;
+global using AutoMapper;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,6 +11,8 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+ // Adds AutoMapper to the dependency injection container. 
+ // The typeof(Program).Assembly parameter specifies the assembly where the AutoMapper profiles are located.
 builder.Services.AddAutoMapper(typeof(Program).Assembly);
 
 // Inject CharacterService when looking for ICharacterService
