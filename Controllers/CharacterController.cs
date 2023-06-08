@@ -43,5 +43,18 @@ namespace dotnet_rpg.Controllers
             return Ok(await _characterService.CreateCharacter(newCharacter));
             // return CreatedAtAction(nameof(GetSingleCharacter), new {id = newCharacter.Id}, newCharacter); //Returns the newly created character + URI (location header) 
         }
+
+        [HttpPut]
+        public async Task<ActionResult<ServiceResponse<GetCharacterResponseDto>>> UpdateCharacter(UpdateCharacterRequestDto updatedCharacter) 
+        {
+            var response = await _characterService.UpdateCharacter(updatedCharacter);
+
+            if (response.Data is null) {
+                return NotFound(response);
+            }
+            
+            return Ok(response);
+        }
+    
     }
 }

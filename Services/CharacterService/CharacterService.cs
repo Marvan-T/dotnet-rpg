@@ -19,7 +19,7 @@ namespace dotnet_rpg.Services.CharacterService
             _mapper = mapper;
         }
 
-        // This is how you make a method asynchronous async Task<ReturnType>, have to add await in the method call (see controllera)
+        // This is how you make a method asynchronous async Task<ReturnType>, have to add await in the method call (see controller)
         public async Task<ServiceResponse<List<GetCharacterResponseDto>>> CreateCharacter(AddCharacterRequestDto newCharacter)
         {
             var serviceResponse = new ServiceResponse<List<GetCharacterResponseDto>>();
@@ -49,5 +49,29 @@ namespace dotnet_rpg.Services.CharacterService
             return serviceResponse;
         }
 
+        public async Task<ServiceResponse<GetCharacterResponseDto>> UpdateCharacter(UpdateCharacterRequestDto updatedCharacter)
+        {
+            var serviceResponse = new ServiceResponse<GetCharacterResponseDto>();
+
+            try {
+                var character = characters.FirstOrDefault(c => c.Id == updatedCharacter.Id);
+
+                if (character is null)
+                    throw new Exception($"Character with id:{updatedCharacter.Id} not found");
+
+                character.Name = updatedCharacter.Name;
+                character.HitPoints = updatedCharacter.HitPoints;
+                character.Strength = updatedCharacter.Strength;
+                character.Defense = updatedCharacter.Defense;
+                character.Class = updatedCharacter.Class;
+
+                serviceResponse.Data = _mapper.Map<GetCharacterResponseDto>(character);
+            } catch (Exception e) {
+                serviceResponse.Success = false;
+                serviceResponse.Message = e.Message;
+            }
+
+            return serviceResponse;
+        }
     }
 }
