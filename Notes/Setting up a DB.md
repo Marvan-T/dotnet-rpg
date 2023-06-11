@@ -33,3 +33,5 @@ https://www.nuget.org/packages/Microsoft.EntityFrameworkCore.SqlServer
     - This is a command-line tool that you can use for Entity Framework Core development. You can use it to create migrations, apply migrations, create a database schema from your model, and execute other development tasks. It's not a NuGet package, but a .NET Global Tool that you install on your machine.
 
     - I think we have to install this only once
+
+    - After installation you can interact with this with by `dotnet ef`
