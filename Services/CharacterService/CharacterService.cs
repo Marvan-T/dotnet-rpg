@@ -12,11 +12,15 @@ namespace dotnet_rpg.Services.CharacterService
             new Character(),
             new Character { Id = 1,  Name = "Sam" }
         };
-        public IMapper _mapper { get; }
 
-        public CharacterService(IMapper mapper)
+        private readonly IMapper _mapper;
+        private readonly DataContext _context;
+    
+
+        public CharacterService(IMapper mapper, DataContext context)
         {
             _mapper = mapper;
+            _context = context;
         }
 
         // This is how you make a method asynchronous async Task<ReturnType>, have to add await in the method call (see controller)
@@ -35,7 +39,7 @@ namespace dotnet_rpg.Services.CharacterService
            var serviceResponse = new ServiceResponse<GetCharacterResponseDto>();
 
             //! -  null forgiving character
-           var character =  characters.FirstOrDefault(x => x.Id == id);
+           var character =  await _context.Characters.FirstOrDefaultAsync(x => x.Id == id);
         
            serviceResponse.Data = _mapper.Map<GetCharacterResponseDto>(character);
 
@@ -45,7 +49,8 @@ namespace dotnet_rpg.Services.CharacterService
         public async Task<ServiceResponse<List<GetCharacterResponseDto>>> GetAllCharacters()
         {
             var serviceResponse = new ServiceResponse<List<GetCharacterResponseDto>>();
-            serviceResponse.Data = characters.Select(x => _mapper.Map<GetCharacterResponseDto>(x)).ToList<GetCharacterResponseDto>();
+            var dbCharacters = await _context.Characters.ToListAsync(); // Accessing Characters table (remember `Characters` needs to be defined in the DataContext.cs)
+            serviceResponse.Data = dbCharacters.Select(x => _mapper.Map<GetCharacterResponseDto>(x)).ToList<GetCharacterResponseDto>();
             return serviceResponse;
         }
 
