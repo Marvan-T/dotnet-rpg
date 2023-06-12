@@ -45,4 +45,7 @@
 
 <br />
 
-7. To run the first migration you can do `dotnet ef migrations add InitialCreate`, here `InitialCreate` is the name of the migration
+7. Creating and running migrations 
+    - To create the first migration you can do `dotnet ef migrations add InitialCreate`, here `InitialCreate` is the name of the migration (creates new migrations based on changes in your data model)
+    - To apply the migrations to the database use the command `dotnet ef database update`
+

@@ -8,7 +8,7 @@ namespace dotnet_rpg.Migrations
     public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
-        protected override void Up(MigrationBuilder migrationBuilder)
+        protected override void Up(MigrationBuilder migrationBuilder) // describes the changes that need to be applied to the database when the migration is run
         {
             migrationBuilder.CreateTable(
                 name: "Characters",
@@ -29,7 +29,7 @@ namespace dotnet_rpg.Migrations
         }
 
         /// <inheritdoc />
-        protected override void Down(MigrationBuilder migrationBuilder)
+        protected override void Down(MigrationBuilder migrationBuilder) // use to roll back a migration 
         {
             migrationBuilder.DropTable(
                 name: "Characters");
