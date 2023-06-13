@@ -28,9 +28,22 @@ namespace dotnet_rpg.Services.CharacterService
         {
             var serviceResponse = new ServiceResponse<List<GetCharacterResponseDto>>();
             var character = _mapper.Map<Character>(newCharacter);
-            character.Id = characters.Max(x => x.Id) + 1;
-            characters.Add(character);
-            serviceResponse.Data = characters.Select(x => _mapper.Map<GetCharacterResponseDto>(x)).ToList<GetCharacterResponseDto>();
+
+            //approach 1    
+            _context.Characters.Add(character);
+            await _context.SaveChangesAsync();
+
+            //approach 2 - , it's important to note that this AddAsync method doesn't make any database operations, it just provides an async way to add the entity to the DbContext
+            /*
+            There is not much benefit in using AddAsync over Add because the AddAsync method does not involve any I/O bound work, 
+            it just prepares the data to be saved and this is a fast operation. 
+            Async methods are mainly beneficial when there are I/O operations involved, like when calling SaveChangesAsync, 
+            which does interact with the database.
+            */
+            // await _context.Characters.AddAsync(character);
+            // await _context.SaveChangesAsync();
+
+            serviceResponse.Data = await _context.Characters.Select(x => _mapper.Map<GetCharacterResponseDto>(x)).ToListAsync();
             return serviceResponse;
         }
 
