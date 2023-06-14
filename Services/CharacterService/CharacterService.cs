@@ -72,7 +72,7 @@ namespace dotnet_rpg.Services.CharacterService
             var serviceResponse = new ServiceResponse<GetCharacterResponseDto>();
 
             try {
-                var character = characters.FirstOrDefault(c => c.Id == updatedCharacter.Id);
+                var character = await _context.Characters.FirstOrDefaultAsync(c => c.Id == updatedCharacter.Id);
 
                 if (character is null)
                     throw new Exception($"Character with id:{updatedCharacter.Id} not found");
@@ -85,6 +85,7 @@ namespace dotnet_rpg.Services.CharacterService
                 // character.Defense = updatedCharacter.Defense;
                 // character.Class = updatedCharacter.Class;
 
+                await _context.SaveChangesAsync();
                 serviceResponse.Data = _mapper.Map<GetCharacterResponseDto>(character);
             } catch (Exception e) {
                 serviceResponse.Success = false;
@@ -99,8 +100,7 @@ namespace dotnet_rpg.Services.CharacterService
             var serviceResponse = new ServiceResponse<List<GetCharacterResponseDto>>();
 
             try {
-                var character = characters.FirstOrDefault(c => c.Id == id); // First can be used but it returns an exception when the character is not found
-                if (character is null) throw new Exception($"Character with id: {id} not found");
+                var character = characters.FirstOrDefault(c => c.Id == id) ?? throw new Exception($"Character with id: {id} not found"); // First can be used but it returns an exception when the character is not found
 
                 characters.Remove(character);
                 serviceResponse.Data = characters.Select(c => _mapper.Map<GetCharacterResponseDto>(c)).ToList();
