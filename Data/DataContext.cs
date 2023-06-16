@@ -23,6 +23,8 @@ namespace dotnet_rpg.Data
         */
         //a property with only a getter, which uses the Set<TEntity> method to get a DbSet for Character entities.
         public DbSet<Character> Characters => Set<Character>(); 
+        public DbSet<User> Users => Set<User>();
+
         
     }   
 }
