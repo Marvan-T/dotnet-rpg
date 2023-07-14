@@ -25,6 +25,7 @@ namespace dotnet_rpg.Controllers
         //ACTIONRESULT - extension of IACTIONRESULT - allows you to say which 'types' will be returned (helps with Swagger)
         [HttpGet("GetAll")]
         // [Route("GetAll")] - Same thing as above
+        // Task - represents an asynchronous operation that can return a value
         public async Task<ActionResult<ServiceResponse<List<GetCharacterResponseDto>>>> Get()
         {
             return Ok(await _characterService.GetAllCharacters()); //http 200 + the mock characters (OK from ControllerBase)

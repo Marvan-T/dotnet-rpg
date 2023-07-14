@@ -1,0 +1,9 @@
+In the course they implement Auth in a repository directly. I decided to
+split the implementation into 2 parts
+
+1 - repository
+Interact with the DB and returns Task
+
+2 - service
+wrapping of the result in a ServiceResponse will be done here. It will talk
+to the repository to interact with the DB

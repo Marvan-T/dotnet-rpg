@@ -1,4 +1,4 @@
-Sure, let's break down these two approaches:
+Let's break down these two approaches:
 
 **Approach 1:**
 
