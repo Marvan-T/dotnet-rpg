@@ -3,12 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace dotnet_rpg.Auth
+namespace dotnet_rpg.Auth;
+
+public interface IAuthRepository
 {
-    public interface IAuthRepository
-    {
-        Task<int> Register(User user, string password);
-        Task<string> Login(string userName, string password);
-        Task<bool> UserExists(string userName);
-    }
+    Task<int> Register(User user, string password);
+    Task<string> Login(string userName, string password);
+    Task<bool> UserExists(string userName);
 }
