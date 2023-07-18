@@ -4,7 +4,7 @@ global using dotnet_rpg.Dtos.Character;
 global using AutoMapper;
 global using Microsoft.EntityFrameworkCore;
 global using dotnet_rpg.Data;
-
+global using dotnet_rpg.Auth;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,11 +25,25 @@ builder.Services.AddAutoMapper(typeof(Program).Assembly);
 
 // Inject CharacterService when looking for ICharacterService
 // Scoped - new instance of service is created for every request that comes in (stateful within the request)
+// Transient - new instance every time
+// Singleton - same instance always
 builder.Services.AddScoped<ICharacterService, CharacterService>();
+
+/* More on Scoped
+Scoped is useful when you require a new instance for each user request, making it ideal for handling user-specific operations like authentication,
+ensuring that the operations and data for one user do not interfere with those for another.
+
+If AuthRepository uses a context like DbContext in Entity Framework, it should be registered as Scoped, because DbContext is not thread-safe.
+
+However, the choice really depends on what exactly AuthRepository does. If it's stateless, you could even register it as a Singleton for better performance.
+Be careful, though, as singletons can cause thread safety issues unless they are stateless or thread-safe.
+*/
+builder.Services.AddScoped<IAuthRepository, AuthRepository>();
 
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
