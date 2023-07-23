@@ -14,7 +14,7 @@ public class AuthRepository : IAuthRepository
         _context = context;
     }
 
-    public async Task<int> Register(User user, string password)
+    public async Task<int> CreateUser(User user, string password)
     {
         //By declaring passwordHash and passwordSalt as out parameters,
         //we're asking the CreatePasswordHash method to initialize and set these variables

@@ -20,7 +20,7 @@ public class AuthService : IAuthService
             };
         }
         
-        var newUserId = await _authRepository.Register(user, password);
+        var newUserId = await _authRepository.CreateUser(user, password);
         return new ServiceResponse<int>
         {
             Data = newUserId
