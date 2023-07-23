@@ -14,11 +14,6 @@ public class AuthRepository : IAuthRepository
         _context = context;
     }
 
-    public Task<string> Login(string userName, string password)
-    {
-        throw new NotImplementedException();
-    }
-
     public async Task<int> Register(User user, string password)
     {
         //By declaring passwordHash and passwordSalt as out parameters,
@@ -40,6 +35,11 @@ public class AuthRepository : IAuthRepository
             return true;
         }
         return false;
+    }
+
+    public async Task<User> GetUser(string userName)
+    {
+        return await _context.Users.FirstOrDefaultAsync(u => u.Username.Equals(userName));
     }
 
     private void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)

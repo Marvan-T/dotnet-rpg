@@ -14,18 +14,27 @@ public class AuthController : ControllerBase
         _authService = authService;
     }
     
-    [HttpPost]
+    [HttpPost("Register")]
     public async Task<ActionResult<ServiceResponse<int>>> Register(UserRegisterDto request)
     {
         // we are using something called an Object initilizer here. It allows us to create a populated object
         // without the need to oboke a constructor
         var response = await _authService.Register(new User{ Username = request.UserName }, request.Password);
-        
         if (!response.Success)
         {
             return BadRequest(response);
         }
-        
+        return Ok(response);
+    }
+
+    [HttpPost("Login")]
+    public async Task<ActionResult<ServiceResponse<string>>> Login(UserLoginDto request)
+    {
+        var response = await _authService.Login(request.Username, request.Password);
+        if (!response.Success)
+        {
+            return  BadRequest(response);
+        }
         return Ok(response);
     }
 }

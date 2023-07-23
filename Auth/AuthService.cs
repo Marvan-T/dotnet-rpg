@@ -18,7 +18,6 @@ public class AuthService : IAuthService
                 Success = false,
                 Message = $"User with the username: {user.Username} already exists"
             };
-     
         }
         
         var newUserId = await _authRepository.Register(user, password);
@@ -29,8 +28,29 @@ public class AuthService : IAuthService
         
     }
 
-    public Task<ServiceResponse<string>> Login(string userName, string password)
+    public async Task<ServiceResponse<string>> Login(string userName, string password)
     {
-        throw new NotImplementedException();
+        var response = new ServiceResponse<string>();
+        var user = await _authRepository.GetUser(userName);
+        
+        if (user is null || !VerifyPassswordHash(password, user.PasswordHash, user.PasswordSalt))
+        {
+            response.Success = false;
+            response.Message = "Invalid usernmae or password";
+        }
+        else
+        {
+            response.Message = user.Id.ToString();
+        }
+
+        return response;
     }
+
+    private bool VerifyPassswordHash(string password, byte[] passwordHash, byte[] passwordSalt)
+    {
+        using var hmac = new System.Security.Cryptography.HMACSHA512(passwordSalt);
+        var computedHash = hmac.ComputeHash((System.Text.Encoding.UTF8.GetBytes(password)));
+        return computedHash.SequenceEqual(passwordHash);
+    }
+
 }
