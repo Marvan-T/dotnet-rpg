@@ -39,6 +39,7 @@ However, the choice really depends on what exactly AuthRepository does. If it's 
 Be careful, though, as singletons can cause thread safety issues unless they are stateless or thread-safe.
 */
 builder.Services.AddScoped<IAuthRepository, AuthRepository>();
+builder.Services.AddScoped<IAuthService, AuthService>();
 
 var app = builder.Build();
 
