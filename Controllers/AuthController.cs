@@ -15,7 +15,7 @@ public class AuthController : ControllerBase
     }
     
     [HttpPost("Register")]
-    public async Task<ActionResult<ServiceResponse<int>>> Register(UserRegisterDto request)
+    public async Task<ActionResult<ServiceResponse<string>>> Register(UserRegisterDto request)
     {
         // we are using something called an Object initilizer here. It allows us to create a populated object
         // without the need to oboke a constructor

@@ -14,7 +14,7 @@ public class AuthRepository : IAuthRepository
         _context = context;
     }
 
-    public async Task<int> CreateUser(User user, string password)
+    public async Task<User> CreateUser(User user, string password)
     {
         //By declaring passwordHash and passwordSalt as out parameters,
         //we're asking the CreatePasswordHash method to initialize and set these variables
@@ -25,7 +25,7 @@ public class AuthRepository : IAuthRepository
 
         _context.Users.Add(user);
         await _context.SaveChangesAsync();
-        return user.Id;
+        return user;
     }
 
     public async Task<bool> UserExists(string userName)
@@ -49,6 +49,9 @@ public class AuthRepository : IAuthRepository
             - allows you to return multiple values from a method
             - it will change the value of the passed argument and the change will be reflected back in the calling code
         */
+
+        // When the HMACSHA512 class is initialized, it automatically generates a new Key if one isn't provided.
+        // This Key is a random set of bytes that is then used as passwordSalt. 
         using var hmac = new System.Security.Cryptography.HMACSHA512();
         passwordSalt = hmac.Key;
         passwordHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
