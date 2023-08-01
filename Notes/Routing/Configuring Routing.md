@@ -26,4 +26,4 @@ app.MapControllers();
 
 
 ## Note well though
-It is not necessary to use `app.UseRouting()` before calling `app.MapControllers()`. This is because `app.MapControllers()` implicitly calls `app.UseRouting()` under the hood. However, if you are using other middleware components that depend on endpoint information, such as authentication or authorization, then you still need to call `app.UseRouting()` before those middleware components as explained above.
+It is not necessary to use `app.UseRouting()` before calling `app.MapControllers()`. This is because `app.MapControllers()` implicitly calls `app.UseRouting()` under the hood. However, if you are using other middleware components that depend on endpoint information, such as authentication or authorization, then you still need to call `app.UseRouting()` before those middleware components (reasons explained above).
