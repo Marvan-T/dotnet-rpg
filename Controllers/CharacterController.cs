@@ -2,11 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace dotnet_rpg.Controllers;
 
 //All controllers derive from ControllerBase - controller without the view support (for views use Controller)
+[Authorize]
 [ApiController] //like @RestController (gives you http specific features like attribute routing and 400 when something is wrong with the model )
 [Route("api/[controller]")] //api/Character (suffix is automatically removed)
 public class CharacterController : ControllerBase

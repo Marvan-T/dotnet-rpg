@@ -5,6 +5,8 @@ global using AutoMapper;
 global using Microsoft.EntityFrameworkCore;
 global using dotnet_rpg.Data;
 global using dotnet_rpg.Auth;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -41,6 +43,18 @@ Be careful, though, as singletons can cause thread safety issues unless they are
 builder.Services.AddScoped<IAuthRepository, AuthRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 
+// JWT configuration
+builder.Services.AddAuthentication((JwtBearerDefaults.AuthenticationScheme)).AddJwtBearer(options =>
+ {
+  options.TokenValidationParameters = new TokenValidationParameters
+  {
+   ValidateIssuerSigningKey = true,
+   IssuerSigningKey = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(builder.Configuration.GetSection("AppSettings:JwtSigningKey").Value!)),
+   ValidateIssuer =  false,
+   ValidateAudience = false
+  }; //! null forgiving operator to ignroe compiler errors
+ });
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -52,6 +66,10 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseRouting();
+
+app.UseAuthentication();
 
 app.UseAuthorization();
 

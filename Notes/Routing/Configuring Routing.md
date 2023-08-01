@@ -9,16 +9,13 @@ app.UseAuthentication();
 
 app.UseAuthorization();
 
-app.UseEndpoints(endpoints =>
-{
-    endpoints.MapControllers();
-});
+app.MapControllers();
 ```
 
-- The ideal approach is to use `app.UseRouting()` followed by authentication, authorization and then `app.UseEndpoints(endpoints => endpoints.MapControllers())`. This is the recommended order of middleware components for a web API that uses endpoint routing in ASP.NET Core 7. Endpoint routing is a feature that allows you to map requests to endpoints, which are units of executable code that handle requests. Endpoints can be defined using attributes or conventions, and can have metadata associated with them, such as authorization policies or CORS policies.
+- The ideal approach is to use app.UseRouting() followed by authentication, authorization and then app.MapControllers(). This is the recommended order of middleware components for a web API that uses endpoint routing in ASP.NET Core 7. Endpoint routing is a feature that allows you to map requests to endpoints, which are units of executable code that handle requests. Endpoints can be defined using attributes or conventions, and can have metadata associated with them, such as authorization policies or CORS policies.
 
 
-- `app.MapControllers()` is a helper method that simplifies the configuration of attribute routing, but it does not provide the full functionality and flexibility of endpoint routing. It is a shortcut for `app.UseEndpoints(endpoints => endpoints.MapControllers())`, which means that it implicitly calls `app.UseEndpoints()` under the hood. However, it does not call `app.UseRouting()` explicitly, which means that it does not match the request to an endpoint based on the route template.
+- `app.MapControllers()` is a helper method introduced in ASP.NET 7 that simplifies the configuration of attribute routing and provides the full functionality and flexibility of endpoint routing. It is equivalent to calling `app.UseEndpoints(endpoints => endpoints.MapControllers())` and is the preferred way of registering routes in minimal API applications in ASP.NET 7. It implicitly calls `app.UseRouting()` under the hood, which means that it matches the request to an endpoint based on the route template.
   
 - The caveats of using `app.MapControllers()` without `app.UseRouting()` are:
 
@@ -27,13 +24,6 @@ app.UseEndpoints(endpoints =>
   - You won't be able to use endpoint middleware, which allows you to apply middleware components (such as authentication or authorization) to specific endpoints or groups of endpoints. Endpoint middleware can help you customize the request pipeline for your endpoints, such as adding logging or error handling. However, if you don't use `app.UseRouting()`, then you won't be able to use `endpoints.Map()`, `endpoints.MapGet()`, `endpoints.MapPost()`, or any other endpoint middleware methods, because they require the `app.UseRouting()` method to match the request to an endpoint based on the route template.
 
 
-## Using `app.useRouting` with `app.MapControllers()`
 
-You can use `app.UseRouting()` and then `app.MapControllers()` instead of `app.UseEndpoints(endpoints => endpoints.MapControllers())` in your web API. That would achieve the same result of mapping your attribute-routed controllers to endpoints, but it would not be the best practice.
-
--  `app.MapControllers()` is a helper method that simplifies the configuration of attribute routing, but it does not provide the full functionality and flexibility of endpoint routing. 
-
-
-It is better to use `app.UseEndpoints()` explicitly in your code, because it allows you to use other features of endpoint routing, such as convention-based routing and endpoint middleware. Convention-based routing allows you to define routes using conventions (such as **MapGet** or **MapPost**) on the app. Endpoint middleware allows you to apply middleware components (such as authentication or authorization) to specific endpoints or groups of endpoints.
-
-By using `app.UseEndpoints()` explicitly, you can also make your code more consistent and readable, as it clearly shows the order of middleware components in your web API. 
+## Note well though
+It is not necessary to use `app.UseRouting()` before calling `app.MapControllers()`. This is because `app.MapControllers()` implicitly calls `app.UseRouting()` under the hood. However, if you are using other middleware components that depend on endpoint information, such as authentication or authorization, then you still need to call `app.UseRouting()` before those middleware components as explained above.
