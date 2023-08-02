@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace dotnet_rpg.Controllers;
 
 //All controllers derive from ControllerBase - controller without the view support (for views use Controller)
-[Authorize]
+[Authorize] // Secures the complete controller (there is an alternative as well) -- See GetSingleCharacter
 [ApiController] //like @RestController (gives you http specific features like attribute routing and 400 when something is wrong with the model )
 [Route("api/[controller]")] //api/Character (suffix is automatically removed)
 public class CharacterController : ControllerBase
@@ -33,7 +33,7 @@ public class CharacterController : ControllerBase
         return Ok(await _characterService.GetAllCharacters()); //http 200 + the mock characters (OK from ControllerBase)
     }
 
-
+    [AllowAnonymous]
     [HttpGet("{id}")]
     public async Task<ActionResult<ServiceResponse<GetCharacterResponseDto>>> GetSingleCharacter(int id)
     {
