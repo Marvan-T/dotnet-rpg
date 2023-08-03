@@ -11,7 +11,7 @@ public interface ICharacterService
 
     public Task<ServiceResponse<List<GetCharacterResponseDto>>> CreateCharacter(AddCharacterRequestDto newCharacter);
 
-    public Task<ServiceResponse<List<GetCharacterResponseDto>>> GetAllCharacters(int userId);
+    public Task<ServiceResponse<List<GetCharacterResponseDto>>> GetAllCharacters();
 
     public Task<ServiceResponse<GetCharacterResponseDto>> UpdateCharacter(UpdateCharacterRequestDto updatedCharacter);
 

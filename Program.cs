@@ -69,6 +69,8 @@ builder.Services.AddAuthentication((JwtBearerDefaults.AuthenticationScheme)).Add
   }; //! null forgiving operator to ignroe compiler errors
  });
 
+builder.Services.AddHttpContextAccessor();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

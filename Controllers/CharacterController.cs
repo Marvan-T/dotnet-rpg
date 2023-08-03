@@ -31,10 +31,10 @@ public class CharacterController : ControllerBase
     // Task - represents an asynchronous operation that can return a value
     public async Task<ActionResult<ServiceResponse<List<GetCharacterResponseDto>>>> Get()
     {
-        /* Claims could be access by the ClaimsPrincipal (authenticated user), this made available through ControllerBase.
-        It is populated based on the claims that we define during authentication.. NameIdentifier claim represents a unique user identifier within the system  */
-        var userId = int.Parse(User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)!.Value);
-        return Ok(await _characterService.GetAllCharacters(userId)); //http 200 + the mock characters (OK from ControllerBase)
+        // /* Claims could be access by the ClaimsPrincipal (authenticated user), this made available through ControllerBase.
+        // It is populated based on the claims that we define during authentication.. NameIdentifier claim represents a unique user identifier within the system  */
+        // var userId = int.Parse(User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)!.Value);
+        return Ok(await _characterService.GetAllCharacters()); //http 200 + the mock characters (OK from ControllerBase)
     }
 
     [AllowAnonymous]
