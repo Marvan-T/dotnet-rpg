@@ -53,10 +53,10 @@ public class CharacterService : ICharacterService
         return serviceResponse;
     }
 
-    public async Task<ServiceResponse<List<GetCharacterResponseDto>>> GetAllCharacters()
+    public async Task<ServiceResponse<List<GetCharacterResponseDto>>> GetAllCharacters(int userId)
     {
         var serviceResponse = new ServiceResponse<List<GetCharacterResponseDto>>();
-        var dbCharacters = await _context.Characters.ToListAsync(); // Accessing Characters table (remember `Characters` needs to be defined in the DataContext.cs)
+        var dbCharacters = await _context.Characters.Where(c => c.UserId == userId).ToListAsync(); // Accessing Characters table (remember `Characters` needs to be defined in the DataContext.cs)
         serviceResponse.Data = dbCharacters.Select(x => _mapper.Map<GetCharacterResponseDto>(x)).ToList<GetCharacterResponseDto>();
         return serviceResponse;
     }

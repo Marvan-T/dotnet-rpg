@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -13,7 +14,7 @@ namespace dotnet_rpg.Controllers;
 [Route("api/[controller]")] //api/Character (suffix is automatically removed)
 public class CharacterController : ControllerBase
 {
-        
+    
     private readonly ICharacterService _characterService;
         
     // ctor - snippet to create the constructor 
@@ -30,7 +31,10 @@ public class CharacterController : ControllerBase
     // Task - represents an asynchronous operation that can return a value
     public async Task<ActionResult<ServiceResponse<List<GetCharacterResponseDto>>>> Get()
     {
-        return Ok(await _characterService.GetAllCharacters()); //http 200 + the mock characters (OK from ControllerBase)
+        /* Claims could be access by the ClaimsPrincipal (authenticated user), this made available through ControllerBase.
+        It is populated based on the claims that we define during authentication.. NameIdentifier claim represents a unique user identifier within the system  */
+        var userId = int.Parse(User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)!.Value);
+        return Ok(await _characterService.GetAllCharacters(userId)); //http 200 + the mock characters (OK from ControllerBase)
     }
 
     [AllowAnonymous]
