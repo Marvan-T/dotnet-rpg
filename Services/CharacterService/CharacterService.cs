@@ -11,17 +11,14 @@ public class CharacterService : ICharacterService
     private readonly IMapper _mapper;
     private readonly DataContext _context;
     private readonly IHttpContextAccessor _iHttpContextAccessor;
-
-
+    
     public CharacterService(IMapper mapper, DataContext context, IHttpContextAccessor iHttpContextAccessor)
     {
         _mapper = mapper;
         _context = context;
         _iHttpContextAccessor = iHttpContextAccessor;
     }
-
-    private int GetUserId() => int.Parse(_iHttpContextAccessor.HttpContext!.User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-
+    
     // This is how you make a method asynchronous async Task<ReturnType>, have to add await in the method call (see controller)
     public async Task<ServiceResponse<List<GetCharacterResponseDto>>> CreateCharacter(AddCharacterRequestDto newCharacter)
     {
@@ -43,30 +40,24 @@ public class CharacterService : ICharacterService
         // await _context.Characters.AddAsync(character);
         // await _context.SaveChangesAsync();
 
-        serviceResponse.Data = await _context.Characters
-            .Where(c => c.UserId == GetUserId())
-            .Select(x => _mapper.Map<GetCharacterResponseDto>(x))
-            .ToListAsync();
+        serviceResponse.Data = await FetchMappedCharacters();
         return serviceResponse;
     }
 
-    public async Task<ServiceResponse<GetCharacterResponseDto>> GetSingleCharacter(int id)
+    public async Task<ServiceResponse<GetCharacterResponseDto>> GetCharacterById(int id)
     {
         var serviceResponse = new ServiceResponse<GetCharacterResponseDto>();
 
         //! -  null forgiving character
         var character =  await _context.Characters.FirstOrDefaultAsync(x => x.Id == id);
-        
         serviceResponse.Data = _mapper.Map<GetCharacterResponseDto>(character);
-
         return serviceResponse;
     }
 
     public async Task<ServiceResponse<List<GetCharacterResponseDto>>> GetAllCharacters()
     {
         var serviceResponse = new ServiceResponse<List<GetCharacterResponseDto>>();
-        var dbCharacters = await _context.Characters.Where(c => c.UserId == GetUserId()).ToListAsync(); // Accessing Characters table (remember `Characters` needs to be defined in the DataContext.cs)
-        serviceResponse.Data = dbCharacters.Select(x => _mapper.Map<GetCharacterResponseDto>(x)).ToList<GetCharacterResponseDto>();
+        serviceResponse.Data = await FetchMappedCharacters();
         return serviceResponse;
     }
 
@@ -103,13 +94,11 @@ public class CharacterService : ICharacterService
         var serviceResponse = new ServiceResponse<List<GetCharacterResponseDto>>();
 
         try {
-            var character = await _context.Characters.FirstOrDefaultAsync(c => c.Id == id) ?? throw new Exception($"Character with id: {id} not found"); // First can be used but it returns an exception when the character is not found
-
+            var character = await _context.Characters
+                .FirstOrDefaultAsync(c => c.Id == id && c.UserId == GetUserId())?? throw new Exception($"Character with id: {id} not found"); // First can be used but it returns an exception when the character is not found
             _context.Characters.Remove(character);
             await _context.SaveChangesAsync();
-
-            serviceResponse.Data = await _context.Characters.Select(c => _mapper.Map<GetCharacterResponseDto>(c)).ToListAsync();
-
+            serviceResponse.Data = await FetchMappedCharacters();
         } catch (Exception e) {
             serviceResponse.Success = false;
             serviceResponse.Message = e.Message;
@@ -117,4 +106,17 @@ public class CharacterService : ICharacterService
 
         return serviceResponse;
     }
+    
+    private async Task<List<GetCharacterResponseDto>> FetchMappedCharacters()
+    {
+        var characters = await _context.Characters
+            .Where(c => c.UserId == GetUserId())
+            .Select(c => _mapper.Map<GetCharacterResponseDto>(c))
+            .ToListAsync();
+
+        return characters;
+    }
+    
+    private int GetUserId() => int.Parse(_iHttpContextAccessor.HttpContext!.User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
 }
