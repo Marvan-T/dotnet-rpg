@@ -27,6 +27,7 @@ public class CharacterService : ICharacterService
     {
         var serviceResponse = new ServiceResponse<List<GetCharacterResponseDto>>();
         var character = _mapper.Map<Character>(newCharacter);
+        character.User = await _context.Users.FirstOrDefaultAsync(u => u.Id == GetUserId());
 
         //approach 1    
         _context.Characters.Add(character);
@@ -42,7 +43,10 @@ public class CharacterService : ICharacterService
         // await _context.Characters.AddAsync(character);
         // await _context.SaveChangesAsync();
 
-        serviceResponse.Data = await _context.Characters.Select(x => _mapper.Map<GetCharacterResponseDto>(x)).ToListAsync();
+        serviceResponse.Data = await _context.Characters
+            .Where(c => c.UserId == GetUserId())
+            .Select(x => _mapper.Map<GetCharacterResponseDto>(x))
+            .ToListAsync();
         return serviceResponse;
     }
 
