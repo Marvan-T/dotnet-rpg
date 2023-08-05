@@ -66,9 +66,11 @@ public class CharacterService : ICharacterService
         var serviceResponse = new ServiceResponse<GetCharacterResponseDto>();
 
         try {
-            var character = await _context.Characters.FirstOrDefaultAsync(c => c.Id == updatedCharacter.Id);
+            var character = await _context.Characters
+                .Include(c => c.User)
+                .FirstOrDefaultAsync(c => c.Id == updatedCharacter.Id);
 
-            if (character is null)
+            if (character is null || character.User!.Id != GetUserId())
                 throw new Exception($"Character with id:{updatedCharacter.Id} not found");
 
             _mapper.Map(updatedCharacter, character);
