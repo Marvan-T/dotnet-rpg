@@ -39,7 +39,7 @@ public class CharacterController : ControllerBase
 
     [AllowAnonymous]
     [HttpGet("{id}")]
-    public async Task<ActionResult<ServiceResponse<GetCharacterResponseDto>>> GetSingleCharacter(int id)
+    public async Task<ActionResult<ServiceResponse<GetCharacterResponseDto>>> GetCharacterById(int id)
     {
         return Ok(await _characterService.GetCharacterById(id));
     }
