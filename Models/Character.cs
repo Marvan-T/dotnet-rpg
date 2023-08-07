@@ -35,6 +35,7 @@ public class Character
         In this case, every Character is related to a User - that is, every character must have a user. That's why UserId is non-nullable. If UserId were nullable, 
         it would mean that you could have characters without users, which is not the case according to the domain model.
         **/
-    public User? User { get; set; } 
+    public User? User { get; set; }
+    public Weapon? Weapon { get; set; }
 
 }
