@@ -30,11 +30,7 @@ public class AuthRepository : IAuthRepository
 
     public async Task<bool> UserExists(string userName)
     {
-        if (await _context.Users.AnyAsync(u => u.Username.ToLower() == userName.ToLower()))
-        {
-            return true;
-        }
-        return false;
+        return await _context.Users.AnyAsync(u => string.Equals(u.Username, userName, StringComparison.OrdinalIgnoreCase));
     }
 
     public async Task<User> GetUser(string userName)

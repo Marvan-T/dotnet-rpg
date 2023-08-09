@@ -1,10 +1,12 @@
 global using dotnet_rpg.Models; //this is visible everywhere (first thing before other usings)
 global using dotnet_rpg.Services.CharacterService;
 global using dotnet_rpg.Dtos.Character;
+global using dotnet_rpg.Dtos.Weapon;
 global using AutoMapper;
 global using Microsoft.EntityFrameworkCore;
 global using dotnet_rpg.Data;
 global using dotnet_rpg.Auth;
+global using dotnet_rpg.Services.WeaponService;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -56,6 +58,7 @@ Be careful, though, as singletons can cause thread safety issues unless they are
 */
 builder.Services.AddScoped<IAuthRepository, AuthRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IWeaponService, WeaponService>();
 
 // JWT configuration
 builder.Services.AddAuthentication((JwtBearerDefaults.AuthenticationScheme)).AddJwtBearer(options =>

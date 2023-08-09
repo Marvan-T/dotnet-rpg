@@ -112,6 +112,7 @@ public class CharacterService : ICharacterService
     private async Task<List<GetCharacterResponseDto>> FetchMappedCharacters()
     {
         var characters = await _context.Characters
+            .Include(c => c.Weapon)
             .Where(c => c.UserId == GetUserId())
             .Select(c => _mapper.Map<GetCharacterResponseDto>(c))
             .ToListAsync();
