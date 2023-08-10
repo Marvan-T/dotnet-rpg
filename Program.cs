@@ -7,6 +7,8 @@ global using Microsoft.EntityFrameworkCore;
 global using dotnet_rpg.Data;
 global using dotnet_rpg.Auth;
 global using dotnet_rpg.Services.WeaponService;
+using System.Text;
+using dotnet_rpg.Repository;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -59,6 +61,8 @@ Be careful, though, as singletons can cause thread safety issues unless they are
 builder.Services.AddScoped<IAuthRepository, AuthRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IWeaponService, WeaponService>();
+builder.Services.AddScoped<IRepository<Character>, CharacterRepository>();
+builder.Services.AddScoped<IRepository<Weapon>, WeaponRepository>();
 
 // JWT configuration
 builder.Services.AddAuthentication((JwtBearerDefaults.AuthenticationScheme)).AddJwtBearer(options =>
@@ -66,7 +70,7 @@ builder.Services.AddAuthentication((JwtBearerDefaults.AuthenticationScheme)).Add
   options.TokenValidationParameters = new TokenValidationParameters
   {
    ValidateIssuerSigningKey = true,
-   IssuerSigningKey = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(builder.Configuration.GetSection("AppSettings:JwtSigningKey").Value!)),
+   IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration.GetSection("AppSettings:JwtSigningKey").Value!)),
    ValidateIssuer =  false,
    ValidateAudience = false
   }; //! null forgiving operator to ignroe compiler errors
