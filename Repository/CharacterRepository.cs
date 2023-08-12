@@ -13,25 +13,29 @@ public class CharacterRepository : IRepository<Character>
         _iHttpContextAccessor = iHttpContextAccessor;
     }
 
-    public async Task<Character> GetByIdAsync(int characterId)
+    public Task<Character> GetByIdAsync(int characterId)
     {
-        return (await _context.Characters
-            .FirstOrDefaultAsync(c => c.Id == characterId && c.User!.Id.Equals(GetUserId())))!;
+        // First can be used but it returns an exception when the character is not found
+        return _context.Characters
+            .FirstOrDefaultAsync(c => c.Id == characterId && c.User!.Id.Equals(GetUserId()));
     }
 
-    public Task<IEnumerable<Character>> GetAllAsync()
+    public Task<List<Character>> GetAllAsync()
     {
-        throw new NotImplementedException();
+        return _context.Characters
+            .Include(c => c.Weapon)
+            .Where(c => c.UserId == GetUserId())
+            .ToListAsync();
     }
 
-    public void Add(Character entity)
+    public void Add(Character character)
     {
-        throw new NotImplementedException();
+        _context.Characters.Add(character);
     }
 
-    public void Delete(Character entity)
+    public void Delete(Character character)
     {
-        throw new NotImplementedException();
+        _context.Remove(character);
     }
 
     public void Update(Character entity)

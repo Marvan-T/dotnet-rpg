@@ -14,7 +14,7 @@ public class WeaponRepository : IRepository<Weapon>
         throw new NotImplementedException();
     }
 
-    public Task<IEnumerable<Weapon>> GetAllAsync()
+    public Task<List<Character>> GetAllAsync()
     {
         throw new NotImplementedException();
     }

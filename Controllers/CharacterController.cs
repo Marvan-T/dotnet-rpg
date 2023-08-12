@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Claims;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -14,9 +9,8 @@ namespace dotnet_rpg.Controllers;
 [Route("api/[controller]")] //api/Character (suffix is automatically removed)
 public class CharacterController : ControllerBase
 {
-    
     private readonly ICharacterService _characterService;
-        
+
     // ctor - snippet to create the constructor 
     public CharacterController(ICharacterService characterService)
     {
@@ -45,35 +39,27 @@ public class CharacterController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<ServiceResponse<List<GetCharacterResponseDto>>>> CreateCharacter(AddCharacterRequestDto newCharacter)
+    public async Task<ActionResult<ServiceResponse<List<GetCharacterResponseDto>>>> CreateCharacter(
+        AddCharacterRequestDto newCharacter)
     {
         return Ok(await _characterService.CreateCharacter(newCharacter));
         // return CreatedAtAction(nameof(GetSingleCharacter), new {id = newCharacter.Id}, newCharacter); //Returns the newly created character + URI (location header) 
     }
 
     [HttpPut]
-    public async Task<ActionResult<ServiceResponse<GetCharacterResponseDto>>> UpdateCharacter(UpdateCharacterRequestDto updatedCharacter) 
+    public async Task<ActionResult<ServiceResponse<GetCharacterResponseDto>>> UpdateCharacter(
+        UpdateCharacterRequestDto updatedCharacter)
     {
         var response = await _characterService.UpdateCharacter(updatedCharacter);
-
-        if (response.Data is null) {
-            return NotFound(response);
-        }
-            
+        if (response.Data is null) return NotFound(response);
         return Ok(response);
     }
 
     [HttpDelete("{id}")]
-    public async Task<ActionResult<ServiceResponse<List<GetCharacterResponseDto>>>> DeleteCharacter(int id) 
+    public async Task<ActionResult<ServiceResponse<List<GetCharacterResponseDto>>>> DeleteCharacter(int id)
     {
         var response = await _characterService.DeleteCharacter(id);
-
-        if (response.Data is null) {
-            return NotFound(response);
-        }
-
+        if (response.Data is null) return NotFound(response);
         return Ok(response);
-
     }
-    
 }

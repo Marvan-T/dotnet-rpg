@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
 namespace dotnet_rpg.Controllers;
@@ -20,11 +19,7 @@ public class WeaponController : ControllerBase
     public async Task<ActionResult<ServiceResponse<GetCharacterResponseDto>>> AddWeapon(AddWeaponDto weapon)
     {
         var serviceResponse = await _weaponService.AddWeaponToCharacter(weapon);
-    
-        if (serviceResponse.Success)
-        {
-            return Ok(serviceResponse);
-        }
+        if (serviceResponse.Success) return Ok(serviceResponse);
         return BadRequest(serviceResponse);
     }
 }
