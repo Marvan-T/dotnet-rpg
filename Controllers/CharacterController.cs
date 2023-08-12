@@ -31,7 +31,7 @@ public class CharacterController : ControllerBase
         return Ok(await _characterService.GetAllCharacters()); //http 200 + the mock characters (OK from ControllerBase)
     }
 
-    [AllowAnonymous]
+    // [AllowAnonymous] - to make this API open, however, this would also mean that the User won't be populated
     [HttpGet("{id}")]
     public async Task<ActionResult<ServiceResponse<GetCharacterResponseDto>>> GetCharacterById(int id)
     {

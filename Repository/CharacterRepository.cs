@@ -17,7 +17,7 @@ public class CharacterRepository : IRepository<Character>
     {
         // First can be used but it returns an exception when the character is not found
         return _context.Characters
-            .FirstOrDefaultAsync(c => c.Id == characterId && c.User!.Id.Equals(GetUserId()));
+            .FirstOrDefaultAsync(c => c.Id == characterId && c.UserId.Equals(GetUserId()));
     }
 
     public Task<List<Character>> GetAllAsync()
