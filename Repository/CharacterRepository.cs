@@ -1,30 +1,28 @@
-﻿using System.Security.Claims;
-
-namespace dotnet_rpg.Repository;
+﻿namespace dotnet_rpg.Repository;
 
 public class CharacterRepository : IRepository<Character>
 {
+    private readonly IAuthRepository _authRepository;
     private readonly DataContext _context;
-    private readonly IHttpContextAccessor _iHttpContextAccessor;
 
-    public CharacterRepository(DataContext dataContext, IHttpContextAccessor iHttpContextAccessor)
+    public CharacterRepository(DataContext dataContext, IAuthRepository authRepository)
     {
         _context = dataContext;
-        _iHttpContextAccessor = iHttpContextAccessor;
+        _authRepository = authRepository;
     }
 
     public Task<Character> GetByIdAsync(int characterId)
     {
         // First can be used but it returns an exception when the character is not found
         return _context.Characters
-            .FirstOrDefaultAsync(c => c.Id == characterId && c.UserId.Equals(GetUserId()));
+            .FirstOrDefaultAsync(c => c.Id == characterId && c.UserId.Equals(_authRepository.GetCurrentUserId()));
     }
 
     public Task<List<Character>> GetAllAsync()
     {
         return _context.Characters
             .Include(c => c.Weapon)
-            .Where(c => c.UserId == GetUserId())
+            .Where(c => c.UserId == _authRepository.GetCurrentUserId())
             .ToListAsync();
     }
 
@@ -40,16 +38,12 @@ public class CharacterRepository : IRepository<Character>
 
     public void Update(Character entity)
     {
+        //Todo: update doesn't seems to be necessary but lookup!
         throw new NotImplementedException();
     }
 
     public Task SaveChangesAsync()
     {
-        throw new NotImplementedException();
-    }
-
-    private int GetUserId()
-    {
-        return int.Parse(_iHttpContextAccessor.HttpContext!.User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        return _context.SaveChangesAsync();
     }
 }

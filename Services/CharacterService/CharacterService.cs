@@ -71,7 +71,7 @@ public class CharacterService : ICharacterService
         {
             var character = await _characterRepository.GetByIdAsync(updatedCharacter.Id);
 
-            if (character is null || character.User!.Id != _authRepository.GetCurrentUserId())
+            if (character is null || character.UserId != _authRepository.GetCurrentUserId())
                 throw new CharacterNotFoundException(updatedCharacter.Id);
 
             _mapper.Map(updatedCharacter, character);
@@ -81,7 +81,7 @@ public class CharacterService : ICharacterService
             // character.Strength = updatedCharacter.Strength;
             // character.Defense = updatedCharacter.Defense;
             // character.Class = updatedCharacter.Class;
-
+            
             await _characterRepository.SaveChangesAsync();
             serviceResponse.Data = _mapper.Map<GetCharacterResponseDto>(character);
         }
@@ -90,7 +90,7 @@ public class CharacterService : ICharacterService
             serviceResponse.Success = false;
             serviceResponse.Message = e.Message;
         }
-        
+
         return serviceResponse;
     }
 
