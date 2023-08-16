@@ -3,8 +3,7 @@
 Consider the scenario where,
 
 - A character could have many skills
-- A skill could be holded by many characters
-
+- A skill could be held by many characters
 ```csharp
 public class Character
 {
@@ -39,5 +38,9 @@ public class DataContext : DbContext
     public DbSet<Skill> Skills => Set<Skill>();
 }
 ```
+
+The join table that will be created by the EF core will have a composite primary key based on
+the foreign keys of the 2 tables that it points to.
+
 
 - And lastly create and run the migrations

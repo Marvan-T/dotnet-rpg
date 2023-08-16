@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
 namespace dotnet_rpg.Models;
 
 public class Character
@@ -37,5 +32,6 @@ public class Character
         **/
     public User? User { get; set; }
     public Weapon? Weapon { get; set; }
+    public ICollection<Skill> Skills { get; set; }
 
 }

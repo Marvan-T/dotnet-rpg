@@ -1,5 +1,5 @@
+# Todo: Needs a rewrite (some of the bits relating to the sue of Set<TEntity> seems to be incorrect)
 # What is the DataContext
-
 The DbContext class in Entity Framework (EF) represents a session with the database. It's a bridge between your .NET
 application and your database. It's a part of Entity Framework – a technology that allows you to interact with your
 database using .NET objects.
