@@ -9,12 +9,12 @@ public class WeaponRepository : IRepository<Weapon>
         _context = dataContext;
     }
 
-    public Task<Weapon> GetByIdAsync(int id)
+    public Task<Weapon?> GetByIdAsync(int id)
     {
         throw new NotImplementedException();
     }
 
-    public Task<List<Character>> GetAllAsync()
+    public Task<List<Weapon>> GetAllAsync()
     {
         throw new NotImplementedException();
     }

@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using dotnet_rpg.Dtos.Skill;
 
 namespace dotnet_rpg.Dtos.Character;
 
@@ -11,7 +8,8 @@ public class GetCharacterResponseDto
     public string Name { get; set; } = "Jerry"; //specifying defaults (you can use ? to make it nullable)
     public int HitPoints { get; set; } = 100;
     public int Strength { get; set; } = 10;
-    public int Defense { get; set; }  = 10;
-    public RpgClass Class { get; set; }  = RpgClass.Knight;
-    public GetWeaponDto Weapon { get; set; }
+    public int Defense { get; set; } = 10;
+    public RpgClass Class { get; set; } = RpgClass.Knight;
+    public GetWeaponDto? Weapon { get; set; }
+    public ICollection<GetSkillDto>? Skills { get; set; }
 }

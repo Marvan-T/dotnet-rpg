@@ -21,7 +21,9 @@ var builder = WebApplication.CreateBuilder(args);
 // DB
 // The lambda expression configures our context to connect to SQLServer DB, this method takes the ConnectionString
 builder.Services.AddDbContext<DataContext>(options =>
- options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))); // This is why the convetion "ConnectionStrings" makes sense
+    options.UseSqlServer(
+        builder.Configuration
+            .GetConnectionString("DefaultConnection"))); // This is why the convetion "ConnectionStrings" makes sense
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -29,18 +31,18 @@ builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddSwaggerGen(c =>
 {
-  c.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
-  {
-   Description = """Standared Authorization header using the Bearer scheme. Example: "bearer {token}" """,
-   In = ParameterLocation.Header,
-   Name = "Authorization",
-   Type = SecuritySchemeType.ApiKey
-  });
-  
-  c.OperationFilter<SecurityRequirementsOperationFilter>();
+    c.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
+    {
+        Description = """Standared Authorization header using the Bearer scheme. Example: "bearer {token}" """,
+        In = ParameterLocation.Header,
+        Name = "Authorization",
+        Type = SecuritySchemeType.ApiKey
+    });
+
+    c.OperationFilter<SecurityRequirementsOperationFilter>();
 });
- // Adds AutoMapper to the dependency injection container. 
- // The typeof(Program).Assembly parameter specifies the assembly where the AutoMapper profiles are located.
+// Adds AutoMapper to the dependency injection container. 
+// The typeof(Program).Assembly parameter specifies the assembly where the AutoMapper profiles are located.
 builder.Services.AddAutoMapper(typeof(Program).Assembly);
 
 // Inject CharacterService when looking for ICharacterService
@@ -63,18 +65,21 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IWeaponService, WeaponService>();
 builder.Services.AddScoped<IRepository<Character>, CharacterRepository>();
 builder.Services.AddScoped<IRepository<Weapon>, WeaponRepository>();
+builder.Services.AddScoped<IRepository<Skill>, SkillRepository>();
 
 // JWT configuration
-builder.Services.AddAuthentication((JwtBearerDefaults.AuthenticationScheme)).AddJwtBearer(options =>
- {
-  options.TokenValidationParameters = new TokenValidationParameters
-  {
-   ValidateIssuerSigningKey = true,
-   IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration.GetSection("AppSettings:JwtSigningKey").Value!)),
-   ValidateIssuer =  false,
-   ValidateAudience = false
-  }; //! null forgiving operator to ignroe compiler errors
- });
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey =
+            new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(builder.Configuration.GetSection("AppSettings:JwtSigningKey").Value!)),
+        ValidateIssuer = false,
+        ValidateAudience = false
+    }; //! null forgiving operator to ignroe compiler errors
+});
 
 builder.Services.AddHttpContextAccessor();
 
