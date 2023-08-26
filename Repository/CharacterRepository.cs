@@ -11,10 +11,12 @@ public class CharacterRepository : IRepository<Character>
         _authRepository = authRepository;
     }
 
-    public Task<Character> GetByIdAsync(int characterId)
+    public Task<Character?> GetByIdAsync(int characterId)
     {
         // First can be used but it returns an exception when the character is not found
         return _context.Characters
+            .Include(c => c.Weapon)
+            .Include(c => c.Skills)
             .FirstOrDefaultAsync(c => c.Id == characterId && c.UserId.Equals(_authRepository.GetCurrentUserId()));
     }
 
@@ -22,6 +24,7 @@ public class CharacterRepository : IRepository<Character>
     {
         return _context.Characters
             .Include(c => c.Weapon)
+            .Include(c => c.Skills)
             .Where(c => c.UserId == _authRepository.GetCurrentUserId())
             .ToListAsync();
     }
