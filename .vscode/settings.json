@@ -1,6 +1,3 @@
 {
-  "cSpell.words": [
-    "IACTIONRESULT"
-  ],
-  "dotnet.defaultSolution": "dotnet-rpg.sln"
+    "dotnet.defaultSolution": "dotnet-rpg.sln"
 }
