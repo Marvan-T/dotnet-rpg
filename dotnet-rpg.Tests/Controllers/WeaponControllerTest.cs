@@ -1,24 +1,21 @@
-﻿using System.Net;
-using dotnet_rpg.Controllers;
+﻿using dotnet_rpg.Controllers;
 using dotnet_rpg.Dtos.Character;
 using dotnet_rpg.Dtos.Weapon;
-using dotnet_rpg.Models;
 using dotnet_rpg.Services.WeaponService;
-using Microsoft.AspNetCore.Mvc;
 
 namespace dotnet_rpg.Tests.Controllers;
 
 public class WeaponControllerTest
 {
-    private Mock<IWeaponService> mockService;
-    private WeaponController controller;
-    
+    private readonly WeaponController controller;
+    private readonly Mock<IWeaponService> mockService;
+
     public WeaponControllerTest()
     {
         mockService = new Mock<IWeaponService>();
         controller = new WeaponController(mockService.Object);
     }
-    
+
     [Fact]
     public async Task AddWeapon_ForFailedServiceResponse_ReturnsBadRequest()
     {
@@ -53,7 +50,7 @@ public class WeaponControllerTest
         var returningGetCharacterResponse = new GetCharacterResponseDto
         {
             Id = characterId,
-            Weapon = new GetWeaponDto{ Name = weaponName }
+            Weapon = new GetWeaponDto { Name = weaponName }
         };
         var serviceResponse = new ServiceResponse<GetCharacterResponseDto>
         {
@@ -66,13 +63,13 @@ public class WeaponControllerTest
         var result = await controller.AddWeapon(addWeaponDto);
 
         //Assert
-        TestHelper.CheckResponse(result,  typeof(OkObjectResult), serviceResponse);
+        TestHelper.CheckResponse(result, typeof(OkObjectResult), serviceResponse);
     }
-    
-    private void SetupMockService(AddWeaponDto weaponDto, ServiceResponse<GetCharacterResponseDto> expectedServiceResponse)
+
+    private void SetupMockService(AddWeaponDto weaponDto,
+        ServiceResponse<GetCharacterResponseDto> expectedServiceResponse)
     {
         mockService.Setup(service => service.AddWeaponToCharacter(weaponDto))
             .ReturnsAsync(expectedServiceResponse);
     }
-    
 }
