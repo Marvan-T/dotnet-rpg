@@ -2,7 +2,7 @@
 
 namespace dotnet_rpg.Tests;
 
-public class TestHelper
+public static class TestHelper
 {
     public static void CheckResponse<T>(ActionResult<ServiceResponse<T>> result, Type expectedObjectResultType, ServiceResponse<T> expectedServiceResponse)
     {
