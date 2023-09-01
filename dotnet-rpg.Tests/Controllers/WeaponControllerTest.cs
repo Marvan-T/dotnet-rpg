@@ -36,7 +36,7 @@ public class WeaponControllerTest
         var result = await controller.AddWeapon(weaponDto);
 
         //Assert
-        CheckResponse(result, typeof(BadRequestObjectResult), failedServiceResponse);
+        TestHelper.CheckResponse(result, typeof(BadRequestObjectResult), failedServiceResponse);
     }
 
     [Fact]
@@ -66,7 +66,7 @@ public class WeaponControllerTest
         var result = await controller.AddWeapon(addWeaponDto);
 
         //Assert
-        CheckResponse(result,  typeof(OkObjectResult), serviceResponse);
+        TestHelper.CheckResponse(result,  typeof(OkObjectResult), serviceResponse);
     }
     
     private void SetupMockService(AddWeaponDto weaponDto, ServiceResponse<GetCharacterResponseDto> expectedServiceResponse)
@@ -75,18 +75,4 @@ public class WeaponControllerTest
             .ReturnsAsync(expectedServiceResponse);
     }
     
-    private static void CheckResponse<T>(ActionResult<ServiceResponse<T>> result, Type expectedObjectResultType, ServiceResponse<T> expectedServiceResponse)
-    {
-        // Assert the type of the Result
-        Assert.IsType(expectedObjectResultType, result.Result);
-
-        // Then cast the result to its actual type to access its Value property
-        var objectResult = (ObjectResult)result.Result;
-        var response = Assert.IsType<ServiceResponse<T>>(objectResult.Value);
-        
-        //Assert against the properties of service response
-        response.Success.Should().Be(expectedServiceResponse.Success);
-        response.Message.Should().Be(expectedServiceResponse.Message);
-        response.Data.Should().BeEquivalentTo(expectedServiceResponse.Data);
-    }
 }
