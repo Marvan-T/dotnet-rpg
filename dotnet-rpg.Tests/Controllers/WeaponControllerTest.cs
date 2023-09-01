@@ -10,21 +10,27 @@ namespace dotnet_rpg.Tests.Controllers;
 
 public class WeaponControllerTest
 {
+    private Mock<IWeaponService> mockService;
+    private WeaponController controller;
+    
+    public WeaponControllerTest()
+    {
+        mockService = new Mock<IWeaponService>();
+        controller = new WeaponController(mockService.Object);
+    }
+    
     [Fact]
     public async Task AddWeapon_ForFailedServiceResponse_ReturnsBadRequest()
     {
         // Arrange
         var weaponDto = new AddWeaponDto();
-        var serviceResponseMessage = "Invalid character id provided";
         var failedServiceResponse = new ServiceResponse<GetCharacterResponseDto>
         {
             Success = false,
-            Message = serviceResponseMessage
+            Message = "Invalid character id provided"
         };
-        var mockService = new Mock<IWeaponService>();
-        mockService.Setup(service => service.AddWeaponToCharacter(weaponDto))
-            .ReturnsAsync(failedServiceResponse);
-        var controller = new WeaponController(mockService.Object);
+
+        SetupMockService(weaponDto, failedServiceResponse);
 
         // Act
         var result = await controller.AddWeapon(weaponDto);
@@ -44,29 +50,29 @@ public class WeaponControllerTest
             CharacterId = characterId,
             Name = weaponName
         };
-        var getWeaponDto = new GetWeaponDto
-        {
-            Name = weaponName
-        };
-        var expectedGetCharacterResponseDto = new GetCharacterResponseDto
+        var returningGetCharacterResponse = new GetCharacterResponseDto
         {
             Id = characterId,
-            Weapon = getWeaponDto
+            Weapon = new GetWeaponDto{ Name = weaponName }
         };
         var serviceResponse = new ServiceResponse<GetCharacterResponseDto>
         {
-            Data = expectedGetCharacterResponseDto
+            Data = returningGetCharacterResponse
         };
-        var mockService = new Mock<IWeaponService>();
-        mockService.Setup(service => service.AddWeaponToCharacter(addWeaponDto))
-            .ReturnsAsync(serviceResponse);
-        var controller = new WeaponController(mockService.Object);
+
+        SetupMockService(addWeaponDto, serviceResponse);
 
         //Act
         var result = await controller.AddWeapon(addWeaponDto);
 
         //Assert
         CheckResponse(result,  typeof(OkObjectResult), serviceResponse);
+    }
+    
+    private void SetupMockService(AddWeaponDto weaponDto, ServiceResponse<GetCharacterResponseDto> expectedServiceResponse)
+    {
+        mockService.Setup(service => service.AddWeaponToCharacter(weaponDto))
+            .ReturnsAsync(expectedServiceResponse);
     }
     
     private static void CheckResponse<T>(ActionResult<ServiceResponse<T>> result, Type expectedObjectResultType, ServiceResponse<T> expectedServiceResponse)
@@ -77,14 +83,10 @@ public class WeaponControllerTest
         // Then cast the result to its actual type to access its Value property
         var objectResult = (ObjectResult)result.Result;
         var response = Assert.IsType<ServiceResponse<T>>(objectResult.Value);
-
-        // Assert that the Success properties are equal
-        Assert.Equal(expectedServiceResponse.Success, response.Success);
-    
-        // Assert that the Message properties are equal
-        Assert.Equal(expectedServiceResponse.Message, response.Message);
-    
-        // Assert that the Data properties are equal
-        Assert.Equal(expectedServiceResponse.Data, response.Data);
+        
+        //Assert against the properties of service response
+        response.Success.Should().Be(expectedServiceResponse.Success);
+        response.Message.Should().Be(expectedServiceResponse.Message);
+        response.Data.Should().BeEquivalentTo(expectedServiceResponse.Data);
     }
 }
