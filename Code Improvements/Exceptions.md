@@ -153,3 +153,14 @@ Here, instead of raising exceptions, we return a ServiceResult which contains th
 - Preoptimization is not always desirable, and it is often better to first ensure code quality in terms of readability and maintainability before considering optimization.
 
 - Code correctness and readability often precede performance considerations unless you're working in areas where performance is critical. If the current design actually leads to a performance problem in future, then a change may need to be considered.
+
+
+## Other patterns to consider:
+
+- **Notification Pattern:** Instead of returning immediatelly when an error is found, collect all issues and return them together at once. This can be very helpful in scenarios where you want to validate multiple conditions and return all validation errors together.
+- **Domain-Driven Design (DDD) pattern:** Rather than directly adding a skill to a character, you could craft methods that encapsulate the rules of the domain. For example, Character could have a method like "AssignSkill(Skill skill)" which checks if the skill is already assigned and only adds it if it's not. This way, the domain rules live in the domain objects and not in the service layer.
+- **Optional Pattern:** Rather than returning null, methods would return an "Optional" object, which would signify that the method may or may not return a value. This can make null checks unnecessary and helps avoid NullReferenceException.
+- **Retry Pattern:** In case of transient failures like temporary network issues or database unavailability, rather than failing the complete operation, the system can retry the operation considering it would eventually pass after a certain number of attempts.
+- **Circuit Breaker Pattern:** If a system is failing continuously, this pattern suggests to stop calling the failing system for a while (open the circuit breaker), let it recover and then begin calling it again (close the circuit breaker). This pattern can be often seen in the microservice architecture based systems.
+
+These are some patterns which are widely used in industry, but whether to use them or not should be based on the particular use-case and the problem you are trying to solve. No pattern is a silver bullet and we should always weigh the pros and cons before using them.
