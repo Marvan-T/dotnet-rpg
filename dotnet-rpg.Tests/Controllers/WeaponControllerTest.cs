@@ -1,4 +1,5 @@
-﻿using dotnet_rpg.Controllers;
+﻿using System.Net;
+using dotnet_rpg.Controllers;
 using dotnet_rpg.Dtos.Character;
 using dotnet_rpg.Dtos.Weapon;
 using dotnet_rpg.Models;
@@ -29,17 +30,7 @@ public class WeaponControllerTest
         var result = await controller.AddWeapon(weaponDto);
 
         //Assert
-        var badRequestResult = Assert.IsType<BadRequestObjectResult>(result.Result); // .Result returns ActionResultType
-        var returnedServiceResponse =
-            Assert.IsType<ServiceResponse<GetCharacterResponseDto>>(badRequestResult
-                .Value); // .Value on what the bad request returns
-        Assert.False(returnedServiceResponse.Success);
-        Assert.Equal(returnedServiceResponse.Message, serviceResponseMessage);
-
-        /* Note:
-        in most cases when dealing with action results in ASP.NET Core, they come wrapped in a higher-order type like ActionResult<T>,
-        so it's important to assert the type of the actual result that is included in this wrapper.
-        */
+        CheckResponse(result, typeof(BadRequestObjectResult), failedServiceResponse);
     }
 
     [Fact]
@@ -75,9 +66,25 @@ public class WeaponControllerTest
         var result = await controller.AddWeapon(addWeaponDto);
 
         //Assert
-        var okRequestResult = Assert.IsType<OkObjectResult>(result.Result);
-        var returnedServiceResponse = Assert.IsType<ServiceResponse<GetCharacterResponseDto>>(okRequestResult
-            .Value);
-        Assert.Equal(returnedServiceResponse.Data, expectedGetCharacterResponseDto);
+        CheckResponse(result,  typeof(OkObjectResult), serviceResponse);
+    }
+    
+    private static void CheckResponse<T>(ActionResult<ServiceResponse<T>> result, Type expectedObjectResultType, ServiceResponse<T> expectedServiceResponse)
+    {
+        // Assert the type of the Result
+        Assert.IsType(expectedObjectResultType, result.Result);
+
+        // Then cast the result to its actual type to access its Value property
+        var objectResult = (ObjectResult)result.Result;
+        var response = Assert.IsType<ServiceResponse<T>>(objectResult.Value);
+
+        // Assert that the Success properties are equal
+        Assert.Equal(expectedServiceResponse.Success, response.Success);
+    
+        // Assert that the Message properties are equal
+        Assert.Equal(expectedServiceResponse.Message, response.Message);
+    
+        // Assert that the Data properties are equal
+        Assert.Equal(expectedServiceResponse.Data, response.Data);
     }
 }
