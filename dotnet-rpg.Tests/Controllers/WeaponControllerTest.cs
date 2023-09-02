@@ -21,13 +21,9 @@ public class WeaponControllerTest
     {
         // Arrange
         var weaponDto = new AddWeaponDto();
-        var failedServiceResponse = new ServiceResponse<GetCharacterResponseDto>
-        {
-            Success = false,
-            Message = "Invalid character id provided"
-        };
-
-        SetupMockService(weaponDto, failedServiceResponse);
+        var failedServiceResponse =
+            TestHelper.CreateServiceResponse<GetCharacterResponseDto>(null, false, "Invalid character id provided");
+        mockService.SetupMockServiceCall(service => service.AddWeaponToCharacter(weaponDto), failedServiceResponse);
 
         // Act
         var result = await controller.AddWeapon(weaponDto);
@@ -52,24 +48,14 @@ public class WeaponControllerTest
             Id = characterId,
             Weapon = new GetWeaponDto { Name = weaponName }
         };
-        var serviceResponse = new ServiceResponse<GetCharacterResponseDto>
-        {
-            Data = returningGetCharacterResponse
-        };
+        var serviceResponse = TestHelper.CreateServiceResponse(returningGetCharacterResponse);
 
-        SetupMockService(addWeaponDto, serviceResponse);
+        mockService.SetupMockServiceCall(service => service.AddWeaponToCharacter(addWeaponDto), serviceResponse);
 
         //Act
         var result = await controller.AddWeapon(addWeaponDto);
 
         //Assert
         TestHelper.CheckResponse(result, typeof(OkObjectResult), serviceResponse);
-    }
-
-    private void SetupMockService(AddWeaponDto weaponDto,
-        ServiceResponse<GetCharacterResponseDto> expectedServiceResponse)
-    {
-        mockService.Setup(service => service.AddWeaponToCharacter(weaponDto))
-            .ReturnsAsync(expectedServiceResponse);
     }
 }
