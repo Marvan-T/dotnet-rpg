@@ -22,15 +22,16 @@ public class WeaponControllerTest
     {
         // Arrange
         var weaponDto = new AddWeaponDto();
-        var failedServiceResponse =
+        var expectedFailedServiceResponse =
             CreateServiceResponse<GetCharacterResponseDto>(null, false, "Invalid character id provided");
-        mockService.SetupMockServiceCall(service => service.AddWeaponToCharacter(weaponDto), failedServiceResponse);
+        mockService.SetupMockServiceCall(service => service.AddWeaponToCharacter(weaponDto),
+            expectedFailedServiceResponse);
 
         // Act
         var result = await controller.AddWeapon(weaponDto);
 
         //Assert
-        CheckResponse(result, typeof(BadRequestObjectResult), failedServiceResponse);
+        CheckResponse(result, typeof(BadRequestObjectResult), expectedFailedServiceResponse);
     }
 
     [Fact]
@@ -49,14 +50,15 @@ public class WeaponControllerTest
             Id = characterId,
             Weapon = new GetWeaponDto { Name = weaponName }
         };
-        var serviceResponse = CreateServiceResponse(returningGetCharacterResponse);
+        var expectedServiceResponse = CreateServiceResponse(returningGetCharacterResponse);
 
-        mockService.SetupMockServiceCall(service => service.AddWeaponToCharacter(addWeaponDto), serviceResponse);
+        mockService.SetupMockServiceCall(service => service.AddWeaponToCharacter(addWeaponDto),
+            expectedServiceResponse);
 
         //Act
         var result = await controller.AddWeapon(addWeaponDto);
 
         //Assert
-        CheckResponse(result, typeof(OkObjectResult), serviceResponse);
+        CheckResponse(result, typeof(OkObjectResult), expectedServiceResponse);
     }
 }

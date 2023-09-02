@@ -26,17 +26,17 @@ public class CharacterControllerTest
             new() { Id = 2, Name = "Jane" }
         };
 
-        var serviceResponse = CreateServiceResponse(characterList);
+        var expectedServiceResponse = CreateServiceResponse(characterList);
 
         //Extension method where we call static method as an instance method. This works because we are calling this mockservice
         //in the implementation of SetupMockServiceCall
-        mockService.SetupMockServiceCall(service => service.GetAllCharacters(), serviceResponse);
+        mockService.SetupMockServiceCall(service => service.GetAllCharacters(), expectedServiceResponse);
 
         //Act
         var result = await controller.Get();
 
         //Assert
-        CheckResponse(result, typeof(OkObjectResult), serviceResponse);
+        CheckResponse(result, typeof(OkObjectResult), expectedServiceResponse);
     }
 
     [Fact]
@@ -45,14 +45,14 @@ public class CharacterControllerTest
         //Arrange 
         var characterId = 1;
         var character = new GetCharacterResponseDto { Id = characterId, Name = "John" };
-        var serviceResponse = CreateServiceResponse(character);
-        mockService.SetupMockServiceCall(service => service.GetCharacterById(characterId), serviceResponse);
+        var expectedServiceResponse = CreateServiceResponse(character);
+        mockService.SetupMockServiceCall(service => service.GetCharacterById(characterId), expectedServiceResponse);
 
         //Act
         var result = await controller.GetCharacterById(characterId);
 
         //Assert
-        CheckResponse(result, typeof(OkObjectResult), serviceResponse);
+        CheckResponse(result, typeof(OkObjectResult), expectedServiceResponse);
     }
 
     [Fact]
@@ -66,14 +66,14 @@ public class CharacterControllerTest
             new() { Id = 2, Name = "Jane" }
         };
 
-        var serviceResponse = CreateServiceResponse(characterList);
-        mockService.SetupMockServiceCall(service => service.CreateCharacter(newCharacter), serviceResponse);
+        var expectedServiceResponse = CreateServiceResponse(characterList);
+        mockService.SetupMockServiceCall(service => service.CreateCharacter(newCharacter), expectedServiceResponse);
 
         //Act
         var result = await controller.CreateCharacter(newCharacter);
 
         //Assert
-        CheckResponse(result, typeof(OkObjectResult), serviceResponse);
+        CheckResponse(result, typeof(OkObjectResult), expectedServiceResponse);
     }
 
     [Fact]
@@ -81,15 +81,16 @@ public class CharacterControllerTest
     {
         // Arrange
         var updatedCharacter = new UpdateCharacterRequestDto();
-        var failedServiceResponse =
+        var expectedFailedServiceResponse =
             CreateServiceResponse<GetCharacterResponseDto>(null, false, "Invalid character id provided");
-        mockService.SetupMockServiceCall(service => service.UpdateCharacter(updatedCharacter), failedServiceResponse);
+        mockService.SetupMockServiceCall(service => service.UpdateCharacter(updatedCharacter),
+            expectedFailedServiceResponse);
 
         // Act
         var result = await controller.UpdateCharacter(updatedCharacter);
 
         //Assert
-        CheckResponse(result, typeof(NotFoundObjectResult), failedServiceResponse);
+        CheckResponse(result, typeof(NotFoundObjectResult), expectedFailedServiceResponse);
     }
 
     [Fact]
@@ -99,14 +100,14 @@ public class CharacterControllerTest
         var characterId = 1;
         var updatedCharacter = new UpdateCharacterRequestDto { Id = characterId, Name = "Jane" };
         var character = new GetCharacterResponseDto { Id = characterId, Name = "Jane" };
-        var serviceResponse = CreateServiceResponse(character);
-        mockService.SetupMockServiceCall(service => service.UpdateCharacter(updatedCharacter), serviceResponse);
+        var expectedServiceResponse = CreateServiceResponse(character);
+        mockService.SetupMockServiceCall(service => service.UpdateCharacter(updatedCharacter), expectedServiceResponse);
 
         //Act
         var result = await controller.UpdateCharacter(updatedCharacter);
 
         //Assert
-        CheckResponse(result, typeof(OkObjectResult), serviceResponse);
+        CheckResponse(result, typeof(OkObjectResult), expectedServiceResponse);
     }
 
     [Fact]
@@ -114,16 +115,17 @@ public class CharacterControllerTest
     {
         // Arrange
         var characterId = 1;
-        var failedServiceResponse =
+        var expectedFailedServiceResponse =
             CreateServiceResponse(new List<GetCharacterResponseDto>(), false,
                 "Invalid character id provided");
-        mockService.SetupMockServiceCall(service => service.DeleteCharacter(characterId), failedServiceResponse);
+        mockService.SetupMockServiceCall(service => service.DeleteCharacter(characterId),
+            expectedFailedServiceResponse);
 
         // Act
         var result = await controller.DeleteCharacter(characterId);
 
         //Assert
-        CheckResponse(result, typeof(NotFoundObjectResult), failedServiceResponse);
+        CheckResponse(result, typeof(NotFoundObjectResult), expectedFailedServiceResponse);
     }
 
     [Fact]
@@ -135,14 +137,14 @@ public class CharacterControllerTest
         {
             new() { Id = 2, Name = "Jane" }
         };
-        var serviceResponse = CreateServiceResponse(characterList);
-        mockService.SetupMockServiceCall(service => service.DeleteCharacter(characterId), serviceResponse);
+        var expectedServiceResponse = CreateServiceResponse(characterList);
+        mockService.SetupMockServiceCall(service => service.DeleteCharacter(characterId), expectedServiceResponse);
 
         //Act
         var result = await controller.DeleteCharacter(characterId);
 
         //Assert
-        CheckResponse(result, typeof(OkObjectResult), serviceResponse);
+        CheckResponse(result, typeof(OkObjectResult), expectedServiceResponse);
     }
 
     [Fact]
@@ -165,17 +167,17 @@ public class CharacterControllerTest
         // Arrange
         var characterId = 1;
         var addCharacterSkillDto = new AddCharacterSkillDto { CharacterId = characterId };
-        var failedServiceResponse =
+        var expectedFailedServiceResponse =
             CreateServiceResponse(new GetCharacterResponseDto(), false, "Invalid skill id provided");
 
         mockService.SetupMockServiceCall(service => service.AddSkillToCharacter(addCharacterSkillDto),
-            failedServiceResponse);
+            expectedFailedServiceResponse);
 
         // Act
         var result = await controller.AddSkillToCharacter(characterId, addCharacterSkillDto);
 
         //Assert
-        CheckResponse(result, typeof(BadRequestObjectResult), failedServiceResponse);
+        CheckResponse(result, typeof(BadRequestObjectResult), expectedFailedServiceResponse);
     }
 
     [Fact]
@@ -185,14 +187,15 @@ public class CharacterControllerTest
         var characterId = 1;
         var addCharacterSkillDto = new AddCharacterSkillDto { CharacterId = characterId };
         var character = new GetCharacterResponseDto { Id = characterId, Name = "John" };
-        var serviceResponse = CreateServiceResponse(character);
+        var expectedServiceResponse = CreateServiceResponse(character);
 
-        mockService.SetupMockServiceCall(service => service.AddSkillToCharacter(addCharacterSkillDto), serviceResponse);
+        mockService.SetupMockServiceCall(service => service.AddSkillToCharacter(addCharacterSkillDto),
+            expectedServiceResponse);
 
         //Act
         var result = await controller.AddSkillToCharacter(characterId, addCharacterSkillDto);
 
         //Assert
-        CheckResponse(result, typeof(OkObjectResult), serviceResponse);
+        CheckResponse(result, typeof(OkObjectResult), expectedServiceResponse);
     }
 }
