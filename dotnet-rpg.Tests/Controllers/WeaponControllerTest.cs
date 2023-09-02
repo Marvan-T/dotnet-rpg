@@ -2,6 +2,7 @@
 using dotnet_rpg.Dtos.Character;
 using dotnet_rpg.Dtos.Weapon;
 using dotnet_rpg.Services.WeaponService;
+using static dotnet_rpg.Tests.TestHelper;
 
 namespace dotnet_rpg.Tests.Controllers;
 
@@ -22,14 +23,14 @@ public class WeaponControllerTest
         // Arrange
         var weaponDto = new AddWeaponDto();
         var failedServiceResponse =
-            TestHelper.CreateServiceResponse<GetCharacterResponseDto>(null, false, "Invalid character id provided");
+            CreateServiceResponse<GetCharacterResponseDto>(null, false, "Invalid character id provided");
         mockService.SetupMockServiceCall(service => service.AddWeaponToCharacter(weaponDto), failedServiceResponse);
 
         // Act
         var result = await controller.AddWeapon(weaponDto);
 
         //Assert
-        TestHelper.CheckResponse(result, typeof(BadRequestObjectResult), failedServiceResponse);
+        CheckResponse(result, typeof(BadRequestObjectResult), failedServiceResponse);
     }
 
     [Fact]
@@ -48,7 +49,7 @@ public class WeaponControllerTest
             Id = characterId,
             Weapon = new GetWeaponDto { Name = weaponName }
         };
-        var serviceResponse = TestHelper.CreateServiceResponse(returningGetCharacterResponse);
+        var serviceResponse = CreateServiceResponse(returningGetCharacterResponse);
 
         mockService.SetupMockServiceCall(service => service.AddWeaponToCharacter(addWeaponDto), serviceResponse);
 
@@ -56,6 +57,6 @@ public class WeaponControllerTest
         var result = await controller.AddWeapon(addWeaponDto);
 
         //Assert
-        TestHelper.CheckResponse(result, typeof(OkObjectResult), serviceResponse);
+        CheckResponse(result, typeof(OkObjectResult), serviceResponse);
     }
 }

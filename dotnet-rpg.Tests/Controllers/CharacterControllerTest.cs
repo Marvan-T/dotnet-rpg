@@ -1,6 +1,7 @@
 using dotnet_rpg.Controllers;
 using dotnet_rpg.Dtos.Character;
 using dotnet_rpg.Services.CharacterService;
+using static dotnet_rpg.Tests.TestHelper;
 
 namespace dotnet_rpg.Tests.Controllers;
 
@@ -25,7 +26,7 @@ public class CharacterControllerTest
             new() { Id = 2, Name = "Jane" }
         };
 
-        var serviceResponse = TestHelper.CreateServiceResponse(characterList);
+        var serviceResponse = CreateServiceResponse(characterList);
 
         //Extension method where we call static method as an instance method. This works because we are calling this mockservice
         //in the implementation of SetupMockServiceCall
@@ -35,7 +36,7 @@ public class CharacterControllerTest
         var result = await controller.Get();
 
         //Assert
-        TestHelper.CheckResponse(result, typeof(OkObjectResult), serviceResponse);
+        CheckResponse(result, typeof(OkObjectResult), serviceResponse);
     }
 
     [Fact]
@@ -44,14 +45,14 @@ public class CharacterControllerTest
         //Arrange 
         var characterId = 1;
         var character = new GetCharacterResponseDto { Id = characterId, Name = "John" };
-        var serviceResponse = TestHelper.CreateServiceResponse(character);
+        var serviceResponse = CreateServiceResponse(character);
         mockService.SetupMockServiceCall(service => service.GetCharacterById(characterId), serviceResponse);
 
         //Act
         var result = await controller.GetCharacterById(characterId);
 
         //Assert
-        TestHelper.CheckResponse(result, typeof(OkObjectResult), serviceResponse);
+        CheckResponse(result, typeof(OkObjectResult), serviceResponse);
     }
 
     [Fact]
@@ -65,14 +66,14 @@ public class CharacterControllerTest
             new() { Id = 2, Name = "Jane" }
         };
 
-        var serviceResponse = TestHelper.CreateServiceResponse(characterList);
+        var serviceResponse = CreateServiceResponse(characterList);
         mockService.SetupMockServiceCall(service => service.CreateCharacter(newCharacter), serviceResponse);
 
         //Act
         var result = await controller.CreateCharacter(newCharacter);
 
         //Assert
-        TestHelper.CheckResponse(result, typeof(OkObjectResult), serviceResponse);
+        CheckResponse(result, typeof(OkObjectResult), serviceResponse);
     }
 
     [Fact]
@@ -81,14 +82,14 @@ public class CharacterControllerTest
         // Arrange
         var updatedCharacter = new UpdateCharacterRequestDto();
         var failedServiceResponse =
-            TestHelper.CreateServiceResponse<GetCharacterResponseDto>(null, false, "Invalid character id provided");
+            CreateServiceResponse<GetCharacterResponseDto>(null, false, "Invalid character id provided");
         mockService.SetupMockServiceCall(service => service.UpdateCharacter(updatedCharacter), failedServiceResponse);
 
         // Act
         var result = await controller.UpdateCharacter(updatedCharacter);
 
         //Assert
-        TestHelper.CheckResponse(result, typeof(NotFoundObjectResult), failedServiceResponse);
+        CheckResponse(result, typeof(NotFoundObjectResult), failedServiceResponse);
     }
 
     [Fact]
@@ -98,14 +99,14 @@ public class CharacterControllerTest
         var characterId = 1;
         var updatedCharacter = new UpdateCharacterRequestDto { Id = characterId, Name = "Jane" };
         var character = new GetCharacterResponseDto { Id = characterId, Name = "Jane" };
-        var serviceResponse = TestHelper.CreateServiceResponse(character);
+        var serviceResponse = CreateServiceResponse(character);
         mockService.SetupMockServiceCall(service => service.UpdateCharacter(updatedCharacter), serviceResponse);
 
         //Act
         var result = await controller.UpdateCharacter(updatedCharacter);
 
         //Assert
-        TestHelper.CheckResponse(result, typeof(OkObjectResult), serviceResponse);
+        CheckResponse(result, typeof(OkObjectResult), serviceResponse);
     }
 
     [Fact]
@@ -114,7 +115,7 @@ public class CharacterControllerTest
         // Arrange
         var characterId = 1;
         var failedServiceResponse =
-            TestHelper.CreateServiceResponse(new List<GetCharacterResponseDto>(), false,
+            CreateServiceResponse(new List<GetCharacterResponseDto>(), false,
                 "Invalid character id provided");
         mockService.SetupMockServiceCall(service => service.DeleteCharacter(characterId), failedServiceResponse);
 
@@ -122,7 +123,7 @@ public class CharacterControllerTest
         var result = await controller.DeleteCharacter(characterId);
 
         //Assert
-        TestHelper.CheckResponse(result, typeof(NotFoundObjectResult), failedServiceResponse);
+        CheckResponse(result, typeof(NotFoundObjectResult), failedServiceResponse);
     }
 
     [Fact]
@@ -134,14 +135,14 @@ public class CharacterControllerTest
         {
             new() { Id = 2, Name = "Jane" }
         };
-        var serviceResponse = TestHelper.CreateServiceResponse(characterList);
+        var serviceResponse = CreateServiceResponse(characterList);
         mockService.SetupMockServiceCall(service => service.DeleteCharacter(characterId), serviceResponse);
 
         //Act
         var result = await controller.DeleteCharacter(characterId);
 
         //Assert
-        TestHelper.CheckResponse(result, typeof(OkObjectResult), serviceResponse);
+        CheckResponse(result, typeof(OkObjectResult), serviceResponse);
     }
 
     [Fact]
@@ -165,7 +166,7 @@ public class CharacterControllerTest
         var characterId = 1;
         var addCharacterSkillDto = new AddCharacterSkillDto { CharacterId = characterId };
         var failedServiceResponse =
-            TestHelper.CreateServiceResponse(new GetCharacterResponseDto(), false, "Invalid skill id provided");
+            CreateServiceResponse(new GetCharacterResponseDto(), false, "Invalid skill id provided");
 
         mockService.SetupMockServiceCall(service => service.AddSkillToCharacter(addCharacterSkillDto),
             failedServiceResponse);
@@ -174,7 +175,7 @@ public class CharacterControllerTest
         var result = await controller.AddSkillToCharacter(characterId, addCharacterSkillDto);
 
         //Assert
-        TestHelper.CheckResponse(result, typeof(BadRequestObjectResult), failedServiceResponse);
+        CheckResponse(result, typeof(BadRequestObjectResult), failedServiceResponse);
     }
 
     [Fact]
@@ -184,7 +185,7 @@ public class CharacterControllerTest
         var characterId = 1;
         var addCharacterSkillDto = new AddCharacterSkillDto { CharacterId = characterId };
         var character = new GetCharacterResponseDto { Id = characterId, Name = "John" };
-        var serviceResponse = TestHelper.CreateServiceResponse(character);
+        var serviceResponse = CreateServiceResponse(character);
 
         mockService.SetupMockServiceCall(service => service.AddSkillToCharacter(addCharacterSkillDto), serviceResponse);
 
@@ -192,6 +193,6 @@ public class CharacterControllerTest
         var result = await controller.AddSkillToCharacter(characterId, addCharacterSkillDto);
 
         //Assert
-        TestHelper.CheckResponse(result, typeof(OkObjectResult), serviceResponse);
+        CheckResponse(result, typeof(OkObjectResult), serviceResponse);
     }
 }
