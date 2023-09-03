@@ -10,7 +10,6 @@ public class CharacterService : ICharacterService
     private readonly IMapper _mapper;
     private readonly IRepository<Skill> _skillRepository;
 
-
     public CharacterService(IMapper mapper, IRepository<Character> characterRepository, IAuthRepository authRepository,
         IRepository<Skill> skillRepository)
     {
@@ -20,7 +19,6 @@ public class CharacterService : ICharacterService
         _skillRepository = skillRepository;
     }
 
-    // This is how you make a method asynchronous async Task<ReturnType>, have to add await in the method call (see controller)
     public async Task<ServiceResponse<List<GetCharacterResponseDto>>> CreateCharacter(
         AddCharacterRequestDto newCharacter)
     {
@@ -29,20 +27,6 @@ public class CharacterService : ICharacterService
         character.User = await _authRepository.GetByIdAsync(_authRepository.GetCurrentUserId());
         _characterRepository.Add(character);
         await _characterRepository.SaveChangesAsync();
-
-        //approach 1    
-        // _context.Characters.Add(character);
-        // await _context.SaveChangesAsync();
-
-        //approach 2 - , it's important to note that this AddAsync method doesn't make any database operations, it just provides an async way to add the entity to the DbContext
-        /*
-        There is not much benefit in using AddAsync over Add because the AddAsync method does not involve any I/O bound work,
-        it just prepares the data to be saved and this is a fast operation.
-        Async methods are mainly beneficial when there are I/O operations involved, like when calling SaveChangesAsync,
-        which does interact with the database.
-        */
-        // await _context.Characters.AddAsync(character);
-        // await _context.SaveChangesAsync();
 
         serviceResponse.Data = await FetchMappedCharacters();
         return serviceResponse;

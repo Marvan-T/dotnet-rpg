@@ -31,4 +31,10 @@ public static class TestHelper
     {
         mockService.Setup(call).ReturnsAsync(response);
     }
+
+    public static void SetupMockMethodCall<TMock, TResult>(this Mock<TMock> mock, Expression<Func<TMock, TResult>> call,
+        TResult result) where TMock : class
+    {
+        mock.Setup(call).Returns(result);
+    }
 }
