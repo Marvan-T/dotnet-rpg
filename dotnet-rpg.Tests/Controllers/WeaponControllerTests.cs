@@ -6,12 +6,12 @@ using static dotnet_rpg.Tests.TestHelper;
 
 namespace dotnet_rpg.Tests.Controllers;
 
-public class WeaponControllerTest
+public class WeaponControllerTests
 {
     private readonly WeaponController controller;
     private readonly Mock<IWeaponService> mockService;
 
-    public WeaponControllerTest()
+    public WeaponControllerTests()
     {
         mockService = new Mock<IWeaponService>();
         controller = new WeaponController(mockService.Object);

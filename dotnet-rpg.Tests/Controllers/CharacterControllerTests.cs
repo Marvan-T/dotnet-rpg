@@ -5,12 +5,12 @@ using static dotnet_rpg.Tests.TestHelper;
 
 namespace dotnet_rpg.Tests.Controllers;
 
-public class CharacterControllerTest
+public class CharacterControllerTests
 {
     private readonly CharacterController controller;
     private readonly Mock<ICharacterService> mockService;
 
-    public CharacterControllerTest()
+    public CharacterControllerTests()
     {
         mockService = new Mock<ICharacterService>();
         controller = new CharacterController(mockService.Object);
