@@ -101,7 +101,6 @@ public class CharacterServiceTests
 
         _authRepositoryMock.Setup(x => x.GetCurrentUserId()).Returns(currentUserId);
         _characterRepositoryMock.Setup(x => x.GetByIdAsync(characterId)).ReturnsAsync(character);
-        // _mapperMock.Setup(x => x.Map(updatedCharacter, character));
         _mapperMock.Setup(x => x.Map<GetCharacterResponseDto>(character)).Returns(getCharacterResponseDto);
 
         // Act
@@ -129,9 +128,9 @@ public class CharacterServiceTests
         result.Success.Should().BeFalse();
         result.Message.Should().Be($"Character with id: {characterId} not found.");
     }
-
+    
     [Fact]
-    public async Task UpdateCharacter_WhenCurrentUserDoesNotOwnTheCharacte_ShouldReturnError()
+    public async Task UpdateCharacter_WhenCurrentUserDoesNotOwnTheCharacter_ShouldReturnError()
     {
         // Arrange
         var characterId = 1;
@@ -151,7 +150,7 @@ public class CharacterServiceTests
     }
 
     [Fact]
-    public async Task DeleteCharacter_WhenCharacterExists_ShouldDeleteCharacter()
+    public async Task DeleteCharacter_WhenCharacterExists_ShouldDeleteCharacterAndReturnAllRemaining()
     {
         // Arrange
         var characterId = 1;
@@ -188,10 +187,9 @@ public class CharacterServiceTests
         result.Success.Should().BeFalse();
         result.Message.Should().Be($"Character with id: {characterId} not found.");
     }
-
-    //new tests:
+    
     [Fact]
-    public async Task AddSkillToCharacter_WhenCharacterAndSkillExist_ShouldAddSkillToCharacter()
+    public async Task AddSkill_ExistingCharacterAndSkill_ShouldUpdateAndReturnCharacter()
     {
         // Arrange
         var characterId = 1;
