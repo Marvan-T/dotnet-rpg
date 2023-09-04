@@ -27,7 +27,10 @@ jobs:
       - name: Install dependencies
         run: dotnet restore
       - name: Test
-        run: dotnet test --logger trx --results-directory "TestResults-${{ env.DOTNET_VERSION }}"
+        run: |
+          dotnet test --logger "trx;LogFileName=results.trx"
+          mkdir TestResults-${{ env.DOTNET_VERSION }}
+          mv *.trx TestResults-${{ env.DOTNET_VERSION }}
       - name: Upload dotnet test results
         uses: actions/upload-artifact@v3
         with:
