@@ -31,6 +31,8 @@ jobs:
           dotnet test --logger "trx;LogFileName=results.trx"
           mkdir TestResults-${{ env.DOTNET_VERSION }}
           mv TestResults/results.trx TestResults-${{ env.DOTNET_VERSION }}
+      - name: List TestResults
+        run: ls -l TestResults-${{ env.DOTNET_VERSION }}
       - name: Upload dotnet test results
         uses: actions/upload-artifact@v3
         with:
