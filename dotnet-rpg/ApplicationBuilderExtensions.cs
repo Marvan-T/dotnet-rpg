@@ -14,8 +14,6 @@ public static class ApplicationBuilderExtensions
 
     public static void AddJwt(this IServiceCollection services, IConfiguration configuration)
     {
-        var jwtSigningKeyConf = configuration.GetSection("AppSettings:JwtSigningKey").Value;
-        Console.WriteLine($"Got JWT signing key from configuration: '{jwtSigningKeyConf}'");
         // JWT setup
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
         {
@@ -44,6 +42,12 @@ public static class ApplicationBuilderExtensions
                 Name = "Authorization",
                 Type = SecuritySchemeType.ApiKey
             });
+            /*
+              Add an operation filter to the Swagger configuration.
+              An operation filter in Swagger is a piece of code that executes for each operation (like GET, POST, PUT, etc on the API endpoints) when the Swagger documentation is generated.
+              This filter makes it easier to work with secured APIs directly from the Swagger UI by adding the option to input the bearer token when required.
+             */
+            c.OperationFilter<SecurityRequirementsOperationFilter>();
         });
     }
 
