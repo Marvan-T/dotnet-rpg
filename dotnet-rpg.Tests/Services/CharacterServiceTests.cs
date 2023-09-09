@@ -53,13 +53,15 @@ public class CharacterServiceTests
     }
 
     [Fact]
-    public async Task GetCharacterById_WhenCharacterExists_ShouldReturnCharacter()
+    public async Task GetCharacterById_WhenCharacterBelongsToCurrentUser_ShouldReturnCharacter()
     {
         // Arrange
         var characterId = 1;
-        var character = new Character();
+        var currentUserId = 1;
+        var character = new Character() { UserId = currentUserId};
         var getCharacterResponseDto = new GetCharacterResponseDto();
 
+        _authRepositoryMock.Setup(x => x.GetCurrentUserId()).Returns(currentUserId);
         _characterRepositoryMock.Setup(x => x.GetByIdAsync(characterId)).ReturnsAsync(character);
         _mapperMock.Setup(x => x.Map<GetCharacterResponseDto>(character)).Returns(getCharacterResponseDto);
 
@@ -69,6 +71,26 @@ public class CharacterServiceTests
         // Assert
         result.Success.Should().BeTrue();
         result.Data.Should().Be(getCharacterResponseDto);
+    }
+    
+    [Fact]
+    public async Task GetCharacterById_WhenCharacterDoesNotBelongToCurrentUser_ShouldReturnError()
+    {
+        // Arrange
+        var characterId = 1;
+        var characterUserId = 2; // character's user id is not the same as the current user id
+        var currentUserId = 1;
+        var character = new Character() { UserId = characterUserId };
+
+        _authRepositoryMock.Setup(x => x.GetCurrentUserId()).Returns(currentUserId);
+        _characterRepositoryMock.Setup(x => x.GetByIdAsync(characterId)).ReturnsAsync(character);
+
+        // Act
+        var result = await _characterService.GetCharacterById(characterId);
+
+        // Assert
+        result.Success.Should().BeFalse();
+        result.Message.Should().Be($"Character with id: {characterId} not found.");
     }
 
     [Fact]
@@ -130,13 +152,14 @@ public class CharacterServiceTests
     }
     
     [Fact]
-    public async Task UpdateCharacter_WhenCurrentUserDoesNotOwnTheCharacter_ShouldReturnError()
+    public async Task UpdateCharacter_WhenCharacterDoesNotBelongToCurrentUser_ShouldReturnError()
     {
         // Arrange
         var characterId = 1;
-        var updatedCharacter = new UpdateCharacterRequestDto { Id = characterId };
-        var character = new Character { UserId = 2 };
+        var characterUserId = 2; // character's user id is different than current user id
         var currentUserId = 1;
+        var updatedCharacter = new UpdateCharacterRequestDto { Id = characterId };
+        var character = new Character { UserId = characterUserId };
 
         _authRepositoryMock.Setup(x => x.GetCurrentUserId()).Returns(currentUserId);
         _characterRepositoryMock.Setup(x => x.GetByIdAsync(characterId)).ReturnsAsync(character);
@@ -148,16 +171,18 @@ public class CharacterServiceTests
         result.Success.Should().BeFalse();
         result.Message.Should().Be($"Character with id: {characterId} not found.");
     }
-
+    
     [Fact]
-    public async Task DeleteCharacter_WhenCharacterExists_ShouldDeleteCharacterAndReturnAllRemaining()
+    public async Task DeleteCharacter_WhenCharacterExistsAndBelongsToCurrentUser_ShouldDeleteCharacterAndReturnAllRemaining()
     {
         // Arrange
         var characterId = 1;
-        var character = new Character();
+        var currentUserId = 1;
+        var character = new Character { UserId = currentUserId };
         var characters = new List<Character>();
         var getCharacterResponseDtoList = new List<GetCharacterResponseDto>();
 
+        _authRepositoryMock.Setup(x => x.GetCurrentUserId()).Returns(currentUserId);
         _characterRepositoryMock.Setup(x => x.GetByIdAsync(characterId)).ReturnsAsync(character);
         _characterRepositoryMock.Setup(x => x.GetAllAsync()).ReturnsAsync(characters);
         _mapperMock.Setup(x => x.Map<List<GetCharacterResponseDto>>(characters)).Returns(getCharacterResponseDtoList);
@@ -179,6 +204,26 @@ public class CharacterServiceTests
         var characterId = 1;
 
         _characterRepositoryMock.Setup(x => x.GetByIdAsync(characterId)).ReturnsAsync((Character)null);
+
+        // Act
+        var result = await _characterService.DeleteCharacter(characterId);
+
+        // Assert
+        result.Success.Should().BeFalse();
+        result.Message.Should().Be($"Character with id: {characterId} not found.");
+    }
+    
+    [Fact]
+    public async Task DeleteCharacter_WhenCharacterDoesNotBelongToCurrentUser_ShouldReturnError()
+    {
+        // Arrange
+        var characterId = 1;
+        var characterUserId = 2; // character's user id is not the same as the current user id
+        var currentUserId = 1;
+        var character = new Character { UserId = characterUserId };
+
+        _authRepositoryMock.Setup(x => x.GetCurrentUserId()).Returns(currentUserId);
+        _characterRepositoryMock.Setup(x => x.GetByIdAsync(characterId)).ReturnsAsync(character);
 
         // Act
         var result = await _characterService.DeleteCharacter(characterId);

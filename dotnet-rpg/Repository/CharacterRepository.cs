@@ -17,7 +17,7 @@ public class CharacterRepository : IRepository<Character>
         return _context.Characters
             .Include(c => c.Weapon)
             .Include(c => c.Skills)
-            .FirstOrDefaultAsync(c => c.Id == characterId && c.UserId.Equals(_authRepository.GetCurrentUserId()));
+            .FirstOrDefaultAsync(c => c.Id == characterId);
     }
 
     public Task<List<Character>> GetAllAsync()

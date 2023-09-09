@@ -35,8 +35,16 @@ public class CharacterService : ICharacterService
     public async Task<ServiceResponse<GetCharacterResponseDto>> GetCharacterById(int id)
     {
         var serviceResponse = new ServiceResponse<GetCharacterResponseDto>();
-        var character = await FindCharacter(id);
-        serviceResponse.Data = _mapper.Map<GetCharacterResponseDto>(character);
+        try
+        {
+            var character = await FindCharacterByUserAndCharacterId(id);
+            serviceResponse.Data = _mapper.Map<GetCharacterResponseDto>(character);
+        }
+        catch (Exception e)
+        {
+            serviceResponse.Success = false;
+            serviceResponse.Message = e.Message;
+        }
         return serviceResponse;
     }
 
@@ -56,19 +64,15 @@ public class CharacterService : ICharacterService
 
         try
         {
-            var character = await FindCharacter(updatedCharacter.Id);
-
-            if (character is null || character.UserId != _authRepository.GetCurrentUserId())
-                throw new CharacterNotFoundException(updatedCharacter.Id);
-
+            var character = await FindCharacterByUserAndCharacterId(updatedCharacter.Id);
             _mapper.Map(updatedCharacter, character);
-
+            
             // character.Name = updatedCharacter.Name;
             // character.HitPoints = updatedCharacter.HitPoints;
             // character.Strength = updatedCharacter.Strength;
             // character.Defense = updatedCharacter.Defense;
             // character.Class = updatedCharacter.Class;
-
+            
             await _characterRepository.SaveChangesAsync();
             serviceResponse.Data = _mapper.Map<GetCharacterResponseDto>(character);
         }
@@ -87,7 +91,7 @@ public class CharacterService : ICharacterService
 
         try
         {
-            var character = await FindCharacter(id);
+            var character = await FindCharacterByUserAndCharacterId(id);
             _characterRepository.Delete(character);
             await _characterRepository.SaveChangesAsync();
             serviceResponse.Data = await FetchMappedCharacters();
@@ -108,7 +112,7 @@ public class CharacterService : ICharacterService
 
         try
         {
-            var character = await FindCharacter(addCharacterSkillDto.CharacterId);
+            var character = await FindCharacterByUserAndCharacterId(addCharacterSkillDto.CharacterId);
             var skill = await FindSkill(addCharacterSkillDto.SkillId);
             AddCharacterSkill(character, addCharacterSkillDto.SkillId, skill);
             await _characterRepository.SaveChangesAsync();
@@ -123,10 +127,11 @@ public class CharacterService : ICharacterService
         return serviceResponse;
     }
 
-    private async Task<Character> FindCharacter(int characterId)
+    private async Task<Character> FindCharacterByUserAndCharacterId(int characterId)
     {
         var character = await _characterRepository.GetByIdAsync(characterId);
-        if (character == null) throw new CharacterNotFoundException(characterId);
+        if (character == null || character.UserId != _authRepository.GetCurrentUserId()) 
+            throw new CharacterNotFoundException(characterId);
         return character;
     }
 
