@@ -7,7 +7,7 @@ var configuration = builder.Configuration;
 // DB
 services.AddDefaultDbContext(
     configuration
-        .GetConnectionString("DefaultConnection")!); // This is why the convetion "ConnectionStrings" makes sense
+        .GetConnectionString("DefaultConnection")!);
 services.AddControllers();
 services.AddEndpointsApiExplorer();
 services.AddSwagger();

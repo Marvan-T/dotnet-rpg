@@ -1,5 +1,6 @@
 global using dotnet_rpg.Models;
 global using dotnet_rpg.Services.CharacterService;
+global using dotnet_rpg.Services.FightService;
 global using dotnet_rpg.Dtos.Character;
 global using dotnet_rpg.Dtos.Weapon;
 global using AutoMapper;

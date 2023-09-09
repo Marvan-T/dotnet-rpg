@@ -1,6 +1,6 @@
 ﻿namespace dotnet_rpg.Repository;
 
-public class SkillRepository : IRepository<Skill>
+public class  SkillRepository : IRepository<Skill>
 {
     private readonly DataContext _dataContext;
 

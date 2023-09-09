@@ -75,6 +75,7 @@ public static class ApplicationBuilderExtensions
         services.AddScoped<IRepository<Character>, CharacterRepository>();
         services.AddScoped<IRepository<Weapon>, WeaponRepository>();
         services.AddScoped<IRepository<Skill>, SkillRepository>();
+        services.AddScoped<IfightService, FightService>();
     }
 
     public static void AddDefaultAutoMapper(this IServiceCollection services)
