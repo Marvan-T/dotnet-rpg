@@ -1,7 +1,9 @@
 using AutoMapper;
 using dotnet_rpg.Auth;
 using dotnet_rpg.Dtos.Character;
+using dotnet_rpg.Exceptions;
 using dotnet_rpg.Repository;
+using dotnet_rpg.Services.CharacterLookupService;
 using dotnet_rpg.Services.CharacterService;
 
 namespace dotnet_rpg.Tests.Services;
@@ -9,19 +11,19 @@ namespace dotnet_rpg.Tests.Services;
 public class CharacterServiceTests
 {
     private readonly Mock<IAuthRepository> _authRepositoryMock;
+    private readonly Mock<ICharacterLookupService> _characterLookupServiceMock;
     private readonly Mock<IRepository<Character>> _characterRepositoryMock;
     private readonly CharacterService _characterService;
     private readonly Mock<IMapper> _mapperMock;
-    private readonly Mock<IRepository<Skill>> _skillRepositoryMock;
 
     public CharacterServiceTests()
     {
         _authRepositoryMock = new Mock<IAuthRepository>();
         _characterRepositoryMock = new Mock<IRepository<Character>>();
         _mapperMock = new Mock<IMapper>();
-        _skillRepositoryMock = new Mock<IRepository<Skill>>();
+        _characterLookupServiceMock = new Mock<ICharacterLookupService>();
         _characterService = new CharacterService(_mapperMock.Object, _characterRepositoryMock.Object,
-            _authRepositoryMock.Object, _skillRepositoryMock.Object);
+            _authRepositoryMock.Object, _characterLookupServiceMock.Object);
     }
 
     [Fact]
@@ -53,15 +55,16 @@ public class CharacterServiceTests
     }
 
     [Fact]
-    public async Task GetCharacterById_WhenCharacterBelongsToCurrentUser_ShouldReturnCharacter()
+    public async Task GetCharacterById_WhenLookupServiceFindsCharacter_ShouldReturnCharacter()
     {
         // Arrange
         var characterId = 1;
         var currentUserId = 1;
-        var character = new Character() { UserId = currentUserId};
+        var character = new Character { UserId = currentUserId };
         var getCharacterResponseDto = new GetCharacterResponseDto();
 
-        _authRepositoryMock.Setup(x => x.GetCurrentUserId()).Returns(currentUserId);
+        _characterLookupServiceMock.Setup(x => x.FindCharacterByUserAndCharacterId(characterId))
+            .ReturnsAsync(character);
         _characterRepositoryMock.Setup(x => x.GetByIdAsync(characterId)).ReturnsAsync(character);
         _mapperMock.Setup(x => x.Map<GetCharacterResponseDto>(character)).Returns(getCharacterResponseDto);
 
@@ -72,17 +75,18 @@ public class CharacterServiceTests
         result.Success.Should().BeTrue();
         result.Data.Should().Be(getCharacterResponseDto);
     }
-    
+
     [Fact]
-    public async Task GetCharacterById_WhenCharacterDoesNotBelongToCurrentUser_ShouldReturnError()
+    public async Task GetCharacterById_WhenCharacterLookupFails_ShouldReturnError()
     {
         // Arrange
         var characterId = 1;
         var characterUserId = 2; // character's user id is not the same as the current user id
         var currentUserId = 1;
-        var character = new Character() { UserId = characterUserId };
+        var character = new Character { UserId = characterUserId };
 
-        _authRepositoryMock.Setup(x => x.GetCurrentUserId()).Returns(currentUserId);
+        _characterLookupServiceMock.Setup(x => x.FindCharacterByUserAndCharacterId(characterId))
+            .ThrowsAsync(new CharacterNotFoundException(characterId));
         _characterRepositoryMock.Setup(x => x.GetByIdAsync(characterId)).ReturnsAsync(character);
 
         // Act
@@ -112,7 +116,7 @@ public class CharacterServiceTests
     }
 
     [Fact]
-    public async Task UpdateCharacter_WhenCharacterExistsAndBelongsToCurrentUser_ShouldUpdateCharacter()
+    public async Task UpdateCharacter_WhenRetrievedAndUpdated_ShouldReturnUpdatedCharacterAndSuccess()
     {
         // Arrange
         var characterId = 1;
@@ -121,7 +125,8 @@ public class CharacterServiceTests
         var currentUserId = 1;
         var getCharacterResponseDto = new GetCharacterResponseDto();
 
-        _authRepositoryMock.Setup(x => x.GetCurrentUserId()).Returns(currentUserId);
+        _characterLookupServiceMock.Setup(x => x.FindCharacterByUserAndCharacterId(characterId))
+            .ReturnsAsync(character);
         _characterRepositoryMock.Setup(x => x.GetByIdAsync(characterId)).ReturnsAsync(character);
         _mapperMock.Setup(x => x.Map<GetCharacterResponseDto>(character)).Returns(getCharacterResponseDto);
 
@@ -135,13 +140,14 @@ public class CharacterServiceTests
     }
 
     [Fact]
-    public async Task UpdateCharacter_WhenCharacterDoesNotExist_ShouldReturnError()
+    public async Task UpdateCharacter_WhenCharacterLookupFails_ShouldReturnError()
     {
         // Arrange
         var characterId = 1;
         var updatedCharacter = new UpdateCharacterRequestDto { Id = characterId };
 
-        _characterRepositoryMock.Setup(x => x.GetByIdAsync(characterId)).ReturnsAsync((Character)null);
+        _characterLookupServiceMock.Setup(x => x.FindCharacterByUserAndCharacterId(characterId))
+            .ThrowsAsync(new CharacterNotFoundException(characterId));
 
         // Act
         var result = await _characterService.UpdateCharacter(updatedCharacter);
@@ -150,30 +156,10 @@ public class CharacterServiceTests
         result.Success.Should().BeFalse();
         result.Message.Should().Be($"Character with id: {characterId} not found.");
     }
-    
+
     [Fact]
-    public async Task UpdateCharacter_WhenCharacterDoesNotBelongToCurrentUser_ShouldReturnError()
-    {
-        // Arrange
-        var characterId = 1;
-        var characterUserId = 2; // character's user id is different than current user id
-        var currentUserId = 1;
-        var updatedCharacter = new UpdateCharacterRequestDto { Id = characterId };
-        var character = new Character { UserId = characterUserId };
-
-        _authRepositoryMock.Setup(x => x.GetCurrentUserId()).Returns(currentUserId);
-        _characterRepositoryMock.Setup(x => x.GetByIdAsync(characterId)).ReturnsAsync(character);
-
-        // Act
-        var result = await _characterService.UpdateCharacter(updatedCharacter);
-
-        // Assert
-        result.Success.Should().BeFalse();
-        result.Message.Should().Be($"Character with id: {characterId} not found.");
-    }
-    
-    [Fact]
-    public async Task DeleteCharacter_WhenCharacterExistsAndBelongsToCurrentUser_ShouldDeleteCharacterAndReturnAllRemaining()
+    public async Task
+        DeleteCharacter_WhenCharacterExists_ShouldDeleteCharacterAndReturnAllRemaining()
     {
         // Arrange
         var characterId = 1;
@@ -182,7 +168,8 @@ public class CharacterServiceTests
         var characters = new List<Character>();
         var getCharacterResponseDtoList = new List<GetCharacterResponseDto>();
 
-        _authRepositoryMock.Setup(x => x.GetCurrentUserId()).Returns(currentUserId);
+        _characterLookupServiceMock.Setup(x => x.FindCharacterByUserAndCharacterId(characterId))
+            .ReturnsAsync(character);
         _characterRepositoryMock.Setup(x => x.GetByIdAsync(characterId)).ReturnsAsync(character);
         _characterRepositoryMock.Setup(x => x.GetAllAsync()).ReturnsAsync(characters);
         _mapperMock.Setup(x => x.Map<List<GetCharacterResponseDto>>(characters)).Returns(getCharacterResponseDtoList);
@@ -198,12 +185,13 @@ public class CharacterServiceTests
     }
 
     [Fact]
-    public async Task DeleteCharacter_WhenCharacterDoesNotExist_ShouldReturnError()
+    public async Task DeleteCharacter_WhenCharacterLookupFails_ShouldReturnError()
     {
         // Arrange
         var characterId = 1;
 
-        _characterRepositoryMock.Setup(x => x.GetByIdAsync(characterId)).ReturnsAsync((Character)null);
+        _characterLookupServiceMock.Setup(x => x.FindCharacterByUserAndCharacterId(characterId))
+            .ThrowsAsync(new CharacterNotFoundException(characterId));
 
         // Act
         var result = await _characterService.DeleteCharacter(characterId);
@@ -211,109 +199,5 @@ public class CharacterServiceTests
         // Assert
         result.Success.Should().BeFalse();
         result.Message.Should().Be($"Character with id: {characterId} not found.");
-    }
-    
-    [Fact]
-    public async Task DeleteCharacter_WhenCharacterDoesNotBelongToCurrentUser_ShouldReturnError()
-    {
-        // Arrange
-        var characterId = 1;
-        var characterUserId = 2; // character's user id is not the same as the current user id
-        var currentUserId = 1;
-        var character = new Character { UserId = characterUserId };
-
-        _authRepositoryMock.Setup(x => x.GetCurrentUserId()).Returns(currentUserId);
-        _characterRepositoryMock.Setup(x => x.GetByIdAsync(characterId)).ReturnsAsync(character);
-
-        // Act
-        var result = await _characterService.DeleteCharacter(characterId);
-
-        // Assert
-        result.Success.Should().BeFalse();
-        result.Message.Should().Be($"Character with id: {characterId} not found.");
-    }
-    
-    [Fact]
-    public async Task AddSkill_ExistingCharacterAndSkill_ShouldUpdateAndReturnCharacter()
-    {
-        // Arrange
-        var characterId = 1;
-        var skillId = 1;
-        var addCharacterSkillDto = new AddCharacterSkillDto { CharacterId = characterId, SkillId = skillId };
-        var character = new Character { Skills = new List<Skill>() };
-        var skill = new Skill();
-        var getCharacterResponseDto = new GetCharacterResponseDto();
-
-        _characterRepositoryMock.Setup(x => x.GetByIdAsync(characterId)).ReturnsAsync(character);
-        _skillRepositoryMock.Setup(x => x.GetByIdAsync(skillId)).ReturnsAsync(skill);
-        _mapperMock.Setup(x => x.Map<GetCharacterResponseDto>(character)).Returns(getCharacterResponseDto);
-
-        // Act
-        var result = await _characterService.AddSkillToCharacter(addCharacterSkillDto);
-
-        // Assert
-        result.Success.Should().BeTrue();
-        result.Data.Should().Be(getCharacterResponseDto);
-        character.Skills.Should().Contain(skill);
-        _characterRepositoryMock.Verify(x => x.SaveChangesAsync(), Times.Once);
-    }
-
-    [Fact]
-    public async Task AddSkillToCharacter_WhenCharacterDoesNotExist_ShouldReturnError()
-    {
-        // Arrange
-        var characterId = 1;
-        var skillId = 1;
-        var addCharacterSkillDto = new AddCharacterSkillDto { CharacterId = characterId, SkillId = skillId };
-
-        _characterRepositoryMock.Setup(x => x.GetByIdAsync(characterId)).ReturnsAsync((Character)null);
-
-        // Act
-        var result = await _characterService.AddSkillToCharacter(addCharacterSkillDto);
-
-        // Assert
-        result.Success.Should().BeFalse();
-        result.Message.Should().Be($"Character with id: {characterId} not found.");
-    }
-
-    [Fact]
-    public async Task AddSkillToCharacter_WhenSkillDoesNotExist_ShouldReturnError()
-    {
-        // Arrange
-        var characterId = 1;
-        var skillId = 1;
-        var addCharacterSkillDto = new AddCharacterSkillDto { CharacterId = characterId, SkillId = skillId };
-        var character = new Character();
-
-        _characterRepositoryMock.Setup(x => x.GetByIdAsync(characterId)).ReturnsAsync(character);
-        _skillRepositoryMock.Setup(x => x.GetByIdAsync(skillId)).ReturnsAsync((Skill)null);
-
-        // Act
-        var result = await _characterService.AddSkillToCharacter(addCharacterSkillDto);
-
-        // Assert
-        result.Success.Should().BeFalse();
-        result.Message.Should().Be($"Skill with id: {skillId} not found.");
-    }
-
-    [Fact]
-    public async Task AddSkillToCharacter_WhenSkillIsAlreadyAddedToCharacter_ShouldReturnError()
-    {
-        // Arrange
-        var characterId = 1;
-        var skillId = 1;
-        var addCharacterSkillDto = new AddCharacterSkillDto { CharacterId = characterId, SkillId = skillId };
-        var character = new Character { Skills = new List<Skill> { new() { Id = skillId } } };
-        var skill = new Skill { Id = skillId };
-
-        _characterRepositoryMock.Setup(x => x.GetByIdAsync(characterId)).ReturnsAsync(character);
-        _skillRepositoryMock.Setup(x => x.GetByIdAsync(skillId)).ReturnsAsync(skill);
-
-        // Act
-        var result = await _characterService.AddSkillToCharacter(addCharacterSkillDto);
-
-        // Assert
-        result.Success.Should().BeFalse();
-        result.Message.Should().Be($"Skill with ID {skillId} is already added to Character with ID {character.Id}");
     }
 }

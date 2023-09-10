@@ -62,14 +62,4 @@ public class CharacterController : ControllerBase
         if (!response.Success) return NotFound(response);
         return Ok(response);
     }
-
-    [HttpPost("{characterId}/skills")]
-    public async Task<ActionResult<ServiceResponse<GetCharacterResponseDto>>> AddSkillToCharacter(int characterId,
-        AddCharacterSkillDto addCharacterSkillDto)
-    {
-        if (characterId != addCharacterSkillDto.CharacterId) return BadRequest("Character Id's don't match");
-        var response = await _characterService.AddSkillToCharacter(addCharacterSkillDto);
-        if (!response.Success) return BadRequest(response);
-        return Ok(response);
-    }
 }

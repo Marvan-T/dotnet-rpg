@@ -1,4 +1,6 @@
 using System.Text;
+using dotnet_rpg.Services.CharacterLookupService;
+using dotnet_rpg.Services.SkillService;
 
 namespace dotnet_rpg;
 
@@ -76,6 +78,8 @@ public static class ApplicationBuilderExtensions
         services.AddScoped<IRepository<Weapon>, WeaponRepository>();
         services.AddScoped<IRepository<Skill>, SkillRepository>();
         services.AddScoped<IfightService, FightService>();
+        services.AddScoped<ISkillService, SkillService>();
+        services.AddScoped<ICharacterLookupService, CharacterLookupService>();
     }
 
     public static void AddDefaultAutoMapper(this IServiceCollection services)

@@ -1,3 +1,4 @@
+global using dotnet_rpg.Exceptions;
 global using dotnet_rpg.Models;
 global using dotnet_rpg.Services.CharacterService;
 global using dotnet_rpg.Services.FightService;

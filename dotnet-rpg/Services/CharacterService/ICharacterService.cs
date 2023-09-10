@@ -9,9 +9,6 @@ public interface ICharacterService
     public Task<ServiceResponse<List<GetCharacterResponseDto>>> GetAllCharacters();
 
     public Task<ServiceResponse<GetCharacterResponseDto>> UpdateCharacter(UpdateCharacterRequestDto updatedCharacter);
-    
-    public Task<ServiceResponse<List<GetCharacterResponseDto>>> DeleteCharacter(int id);
 
-    public Task<ServiceResponse<GetCharacterResponseDto>> AddSkillToCharacter(
-        AddCharacterSkillDto addCharacterSkillDto);
+    public Task<ServiceResponse<List<GetCharacterResponseDto>>> DeleteCharacter(int id);
 }
