@@ -1,6 +1,6 @@
 ﻿namespace dotnet_rpg.Repository;
 
-public class SkillRepository : IRepository<Skill>
+public class  SkillRepository : IRepository<Skill>
 {
     private readonly DataContext _dataContext;
 
@@ -36,6 +36,6 @@ public class SkillRepository : IRepository<Skill>
 
     public Task SaveChangesAsync()
     {
-        throw new NotImplementedException();
+        return _dataContext.SaveChangesAsync();
     }
 }

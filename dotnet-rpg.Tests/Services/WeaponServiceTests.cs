@@ -1,29 +1,31 @@
 using AutoMapper;
 using dotnet_rpg.Dtos.Character;
 using dotnet_rpg.Dtos.Weapon;
+using dotnet_rpg.Exceptions;
 using dotnet_rpg.Repository;
+using dotnet_rpg.Services.CharacterLookupService;
 using dotnet_rpg.Services.WeaponService;
 
 namespace dotnet_rpg.Tests.Services;
 
 public class WeaponServiceTests
 {
-    private readonly Mock<IRepository<Character>> _characterRepositoryMock;
+    private readonly Mock<ICharacterLookupService> _characterLookupServiceMock;
     private readonly Mock<IMapper> _mapperMock;
     private readonly Mock<IRepository<Weapon>> _weaponRepositoryMock;
     private readonly WeaponService _weaponService;
 
     public WeaponServiceTests()
     {
-        _characterRepositoryMock = new Mock<IRepository<Character>>();
+        _characterLookupServiceMock = new Mock<ICharacterLookupService>();
         _weaponRepositoryMock = new Mock<IRepository<Weapon>>();
         _mapperMock = new Mock<IMapper>();
-        _weaponService = new WeaponService(_characterRepositoryMock.Object, _weaponRepositoryMock.Object,
+        _weaponService = new WeaponService(_characterLookupServiceMock.Object, _weaponRepositoryMock.Object,
             _mapperMock.Object);
     }
 
     [Fact]
-    public async Task AddWeaponToCharacter_WhenCharacterExists_ShouldAddWeaponToCharacter()
+    public async Task AddWeaponToCharacter_WhenLookupServiceFindsCharacter_ShouldAddWeaponToCharacter()
     {
         // Arrange
         var characterId = 1;
@@ -32,7 +34,8 @@ public class WeaponServiceTests
         var weapon = new Weapon();
         var getCharacterResponseDto = new GetCharacterResponseDto();
 
-        _characterRepositoryMock.SetupMockMethodCall(x => x.GetByIdAsync(characterId), Task.FromResult(character));
+        _characterLookupServiceMock.Setup(x => x.FindCharacterByUserAndCharacterId(characterId))
+            .ReturnsAsync(character);
         _mapperMock.SetupMockMethodCall(x => x.Map<Weapon>(addWeaponDto), weapon);
         _mapperMock.SetupMockMethodCall(x => x.Map<GetCharacterResponseDto>(character), getCharacterResponseDto);
 
@@ -47,13 +50,13 @@ public class WeaponServiceTests
     }
 
     [Fact]
-    public async Task AddWeaponToCharacter_WhenCharacterDoesNotExist_ShouldReturnError()
+    public async Task AddWeaponToCharacter_WhenCharacterLookupFails_ShouldReturnError()
     {
         // Arrange
         var characterId = 1;
         var addWeaponDto = new AddWeaponDto { CharacterId = characterId };
-        _characterRepositoryMock.SetupMockMethodCall(x => x.GetByIdAsync(characterId),
-            Task.FromResult((Character)null));
+        _characterLookupServiceMock.Setup(x => x.FindCharacterByUserAndCharacterId(characterId))
+            .ThrowsAsync(new CharacterNotFoundException(characterId));
 
         // Act
         var result = await _weaponService.AddWeaponToCharacter(addWeaponDto);

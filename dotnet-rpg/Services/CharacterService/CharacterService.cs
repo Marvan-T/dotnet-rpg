@@ -1,22 +1,21 @@
-using dotnet_rpg.Exceptions;
-using dotnet_rpg.Repository;
+using dotnet_rpg.Services.CharacterLookupService;
 
 namespace dotnet_rpg.Services.CharacterService;
 
 public class CharacterService : ICharacterService
 {
     private readonly IAuthRepository _authRepository;
+    private readonly ICharacterLookupService _characterLookupService;
     private readonly IRepository<Character> _characterRepository;
     private readonly IMapper _mapper;
-    private readonly IRepository<Skill> _skillRepository;
 
     public CharacterService(IMapper mapper, IRepository<Character> characterRepository, IAuthRepository authRepository,
-        IRepository<Skill> skillRepository)
+        ICharacterLookupService characterLookupService)
     {
         _mapper = mapper;
         _characterRepository = characterRepository;
         _authRepository = authRepository;
-        _skillRepository = skillRepository;
+        _characterLookupService = characterLookupService;
     }
 
     public async Task<ServiceResponse<List<GetCharacterResponseDto>>> CreateCharacter(
@@ -35,8 +34,17 @@ public class CharacterService : ICharacterService
     public async Task<ServiceResponse<GetCharacterResponseDto>> GetCharacterById(int id)
     {
         var serviceResponse = new ServiceResponse<GetCharacterResponseDto>();
-        var character = await FindCharacter(id);
-        serviceResponse.Data = _mapper.Map<GetCharacterResponseDto>(character);
+        try
+        {
+            var character = await _characterLookupService.FindCharacterByUserAndCharacterId(id);
+            serviceResponse.Data = _mapper.Map<GetCharacterResponseDto>(character);
+        }
+        catch (Exception e)
+        {
+            serviceResponse.Success = false;
+            serviceResponse.Message = e.Message;
+        }
+
         return serviceResponse;
     }
 
@@ -56,11 +64,7 @@ public class CharacterService : ICharacterService
 
         try
         {
-            var character = await FindCharacter(updatedCharacter.Id);
-
-            if (character is null || character.UserId != _authRepository.GetCurrentUserId())
-                throw new CharacterNotFoundException(updatedCharacter.Id);
-
+            var character = await _characterLookupService.FindCharacterByUserAndCharacterId(updatedCharacter.Id);
             _mapper.Map(updatedCharacter, character);
 
             // character.Name = updatedCharacter.Name;
@@ -87,7 +91,7 @@ public class CharacterService : ICharacterService
 
         try
         {
-            var character = await FindCharacter(id);
+            var character = await _characterLookupService.FindCharacterByUserAndCharacterId(id);
             _characterRepository.Delete(character);
             await _characterRepository.SaveChangesAsync();
             serviceResponse.Data = await FetchMappedCharacters();
@@ -99,50 +103,6 @@ public class CharacterService : ICharacterService
         }
 
         return serviceResponse;
-    }
-
-    public async Task<ServiceResponse<GetCharacterResponseDto>> AddSkillToCharacter(
-        AddCharacterSkillDto addCharacterSkillDto)
-    {
-        var serviceResponse = new ServiceResponse<GetCharacterResponseDto>();
-
-        try
-        {
-            var character = await FindCharacter(addCharacterSkillDto.CharacterId);
-            var skill = await FindSkill(addCharacterSkillDto.SkillId);
-            AddCharacterSkill(character, addCharacterSkillDto.SkillId, skill);
-            await _characterRepository.SaveChangesAsync();
-            serviceResponse.Data = _mapper.Map<GetCharacterResponseDto>(character);
-        }
-        catch (Exception e)
-        {
-            serviceResponse.Success = false;
-            serviceResponse.Message = e.Message;
-        }
-
-        return serviceResponse;
-    }
-
-    private async Task<Character> FindCharacter(int characterId)
-    {
-        var character = await _characterRepository.GetByIdAsync(characterId);
-        if (character == null) throw new CharacterNotFoundException(characterId);
-        return character;
-    }
-
-    private async Task<Skill> FindSkill(int skillId)
-    {
-        var skill = await _skillRepository.GetByIdAsync(skillId);
-        if (skill == null) throw new SkillNotFoundException(skillId);
-        return skill;
-    }
-
-    private void AddCharacterSkill(Character character, int skillId, Skill skill)
-    {
-        if (character.Skills.Any(s => s.Id == skillId))
-            throw new InvalidOperationException(
-                $"Skill with ID {skillId} is already added to Character with ID {character.Id}");
-        character.Skills.Add(skill);
     }
 
     private async Task<List<GetCharacterResponseDto>> FetchMappedCharacters()
