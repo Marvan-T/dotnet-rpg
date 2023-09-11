@@ -36,6 +36,6 @@ public class  SkillRepository : IRepository<Skill>
 
     public Task SaveChangesAsync()
     {
-        throw new NotImplementedException();
+        return _dataContext.SaveChangesAsync();
     }
 }
