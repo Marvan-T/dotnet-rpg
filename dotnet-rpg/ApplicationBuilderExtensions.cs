@@ -77,7 +77,7 @@ public static class ApplicationBuilderExtensions
         services.AddScoped<IRepository<Character>, CharacterRepository>();
         services.AddScoped<IRepository<Weapon>, WeaponRepository>();
         services.AddScoped<IRepository<Skill>, SkillRepository>();
-        services.AddScoped<IfightService, FightService>();
+        services.AddScoped<IFightService, FightService>();
         services.AddScoped<ISkillService, SkillService>();
         services.AddScoped<ICharacterLookupService, CharacterLookupService>();
     }

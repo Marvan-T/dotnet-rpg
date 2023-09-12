@@ -30,7 +30,7 @@ public class Character
     public Weapon? Weapon { get; set; }
 
     public ICollection<Skill> Skills { get; set; }
-    // public int Fights { get; set; }
-    // public int Victories { get; set; }
-    // public int Defeats { get; set; }
+    public int Fights { get; set; }
+    public int Victories { get; set; }
+    public int Defeats { get; set; }
 }

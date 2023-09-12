@@ -19,4 +19,12 @@ public class CharacterLookupService : ICharacterLookupService
 
         return character;
     }
+
+    public async Task<Character> FindCharacterByCharacterId(int characterId)
+    {
+        var character = await _characterRepository.GetByIdAsync(characterId);
+        if (character == null)
+            throw new CharacterNotFoundException(characterId);
+        return character;
+    }
 }
