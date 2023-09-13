@@ -1,6 +1,7 @@
 using System.Text;
 using dotnet_rpg.Services.CharacterLookupService;
 using dotnet_rpg.Services.SkillService;
+using dotnet_rpg.Utility.RandomGeneration;
 
 namespace dotnet_rpg;
 
@@ -77,9 +78,13 @@ public static class ApplicationBuilderExtensions
         services.AddScoped<IRepository<Character>, CharacterRepository>();
         services.AddScoped<IRepository<Weapon>, WeaponRepository>();
         services.AddScoped<IRepository<Skill>, SkillRepository>();
-        services.AddScoped<IfightService, FightService>();
+        services.AddScoped<IFightService, FightService>();
         services.AddScoped<ISkillService, SkillService>();
         services.AddScoped<ICharacterLookupService, CharacterLookupService>();
+
+        //If you create multiple instances of Random too closely together, they can end up using the same seed value and
+        //thus producing the same sequence of random numbers. This often happens when Random objects are created in a tight loop.
+        services.AddSingleton<IRandomGenerator, RandomGenerator>();
     }
 
     public static void AddDefaultAutoMapper(this IServiceCollection services)
