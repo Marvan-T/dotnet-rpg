@@ -45,6 +45,33 @@ public class FightService : IFightService
         return response;
     }
 
+    public async Task<ServiceResponse<AttackResultDto>> SkillAttack(SkillAttackDto skillAttackDto)
+    {
+        var response = new ServiceResponse<AttackResultDto>();
+        try
+        {
+            var attacker = await _characterLookupService.FindCharacterByUserAndCharacterId(skillAttackDto.AttackerId);
+            var opponent = await _characterLookupService.FindCharacterByCharacterId(skillAttackDto.OpponentId);
+
+            if (IsDefeated(opponent)) return BuildDefeatedResponse(opponent, response);
+
+            var damageDealt = DoSkillAttack(attacker, opponent, skillAttackDto.SkillId);
+            UpdateFightStatistics(attacker, opponent);
+            await _characterRepository.SaveChangesAsync();
+
+            if (IsDefeated(opponent)) response.Message = $"{opponent.Name} has been defeated";
+
+            response.Data = BuildAttackResultDto(attacker, opponent, damageDealt);
+        }
+        catch (Exception e)
+        {
+            response.Success = false;
+            response.Message = e.Message;
+        }
+
+        return response;
+    }
+
     private bool IsDefeated(Character character)
     {
         return character.HitPoints <= 0;
@@ -64,6 +91,20 @@ public class FightService : IFightService
             throw new NoWeaponFoundException(attacker.Id);
 
         var damage = attacker.Weapon.Damage + _random.Next(attacker.Strength);
+        damage -= _random.Next(opponent.Defense);
+
+        if (damage > 0) opponent.HitPoints -= damage;
+
+        return damage;
+    }
+
+    private int DoSkillAttack(Character attacker, Character opponent, int skillId)
+    {
+        var skill = attacker.Skills.FirstOrDefault(s => s.Id == skillId);
+        if (skill is null)
+            throw new SkillNotFoundException(skillId);
+
+        var damage = skill.Damage + _random.Next(attacker.Intelligence);
         damage -= _random.Next(opponent.Defense);
 
         if (damage > 0) opponent.HitPoints -= damage;
