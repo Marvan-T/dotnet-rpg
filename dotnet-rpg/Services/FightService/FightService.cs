@@ -20,42 +20,27 @@ public class FightService : IFightService
 
     public async Task<ServiceResponse<AttackResultDto>> WeaponAttack(WeaponAttackDto weaponAttackDto)
     {
-        var response = new ServiceResponse<AttackResultDto>();
-        try
-        {
-            var attacker = await _characterLookupService.FindCharacterByUserAndCharacterId(weaponAttackDto.AttackerId);
-            var opponent = await _characterLookupService.FindCharacterByCharacterId(weaponAttackDto.OpponentId);
-
-            if (IsDefeated(opponent)) return BuildDefeatedResponse(opponent, response);
-
-            var damageDealt = DoWeaponAttack(attacker, opponent);
-            UpdateFightStatistics(attacker, opponent);
-            await _characterRepository.SaveChangesAsync();
-
-            if (IsDefeated(opponent)) response.Message = $"{opponent.Name} has been defeated";
-
-            response.Data = BuildAttackResultDto(attacker, opponent, damageDealt);
-        }
-        catch (Exception e)
-        {
-            response.Success = false;
-            response.Message = e.Message;
-        }
-
-        return response;
+        return await PerformAttack(weaponAttackDto, (attacker, opponent) => DoWeaponAttack(attacker, opponent));
     }
 
     public async Task<ServiceResponse<AttackResultDto>> SkillAttack(SkillAttackDto skillAttackDto)
     {
+        return await PerformAttack(skillAttackDto,
+            (attacker, opponent) => DoSkillAttack(attacker, opponent, skillAttackDto.SkillId));
+    }
+
+    private async Task<ServiceResponse<AttackResultDto>> PerformAttack(IAttackDto attackDto,
+        Func<Character, Character, int> attackStrategy)
+    {
         var response = new ServiceResponse<AttackResultDto>();
         try
         {
-            var attacker = await _characterLookupService.FindCharacterByUserAndCharacterId(skillAttackDto.AttackerId);
-            var opponent = await _characterLookupService.FindCharacterByCharacterId(skillAttackDto.OpponentId);
+            var attacker = await _characterLookupService.FindCharacterByUserAndCharacterId(attackDto.AttackerId);
+            var opponent = await _characterLookupService.FindCharacterByCharacterId(attackDto.OpponentId);
 
             if (IsDefeated(opponent)) return BuildDefeatedResponse(opponent, response);
 
-            var damageDealt = DoSkillAttack(attacker, opponent, skillAttackDto.SkillId);
+            var damageDealt = attackStrategy.Invoke(attacker, opponent);
             UpdateFightStatistics(attacker, opponent);
             await _characterRepository.SaveChangesAsync();
 
