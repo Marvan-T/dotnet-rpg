@@ -33,12 +33,7 @@ public class FightService : IFightService
         if (attacker.Weapon is null)
             throw new NoWeaponFoundException(attacker.Id);
 
-        var damage = attacker.Weapon.Damage + _random.Next(attacker.Strength);
-        damage -= _random.Next(opponent.Defense);
-
-        if (damage > 0) opponent.HitPoints -= damage;
-
-        return damage;
+        return ApplyAttack(attacker.Weapon.Damage, attacker.Strength, opponent.Defense, opponent);
     }
 
     private int DoSkillAttack(Character attacker, Character opponent, int skillId)
@@ -47,8 +42,14 @@ public class FightService : IFightService
         if (skill is null)
             throw new SkillNotFoundException(skillId);
 
-        var damage = skill.Damage + _random.Next(attacker.Intelligence);
-        damage -= _random.Next(opponent.Defense);
+        return ApplyAttack(skill.Damage, attacker.Intelligence, opponent.Defense, opponent);
+    }
+
+    private int ApplyAttack(int baseDamage, int attackerModifier, int opponentDefense,
+        Character opponent)
+    {
+        var damage = baseDamage + _random.Next(attackerModifier);
+        damage -= _random.Next(opponentDefense);
 
         if (damage > 0) opponent.HitPoints -= damage;
 
