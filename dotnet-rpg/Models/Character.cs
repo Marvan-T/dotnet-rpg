@@ -30,7 +30,7 @@ public class Character
 
     public Weapon? Weapon { get; set; }
 
-    public ICollection<Skill> Skills { get; set; }
+    public ICollection<Skill> Skills { get; set; } = new List<Skill>();
     public int Fights { get; set; }
     public int Victories { get; set; }
     public int Defeats { get; set; }
