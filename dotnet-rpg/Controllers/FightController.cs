@@ -16,10 +16,18 @@ public class FightController : ControllerBase
         _fightService = fightService;
     }
 
-    [HttpPost]
+    [HttpPost("Weapon")]
     public async Task<ActionResult<ServiceResponse<AttackResultDto>>> DoWeaponAttack(WeaponAttackDto weaponAttackDto)
     {
         var response = await _fightService.WeaponAttack(weaponAttackDto);
+        if (!response.Success) return BadRequest(response);
+        return Ok(response);
+    }
+
+    [HttpPost("Skill")]
+    public async Task<ActionResult<ServiceResponse<AttackResultDto>>> DoSkillAttack(SkillAttackDto skillAttackDto)
+    {
+        var response = await _fightService.SkillAttack(skillAttackDto);
         if (!response.Success) return BadRequest(response);
         return Ok(response);
     }

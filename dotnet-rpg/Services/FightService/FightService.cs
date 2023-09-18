@@ -1,61 +1,31 @@
 using dotnet_rpg.Dtos.Fight;
-using dotnet_rpg.Services.CharacterLookupService;
+using dotnet_rpg.Services.AttackPerformService;
 using dotnet_rpg.Utility.RandomGeneration;
 
 namespace dotnet_rpg.Services.FightService;
 
 public class FightService : IFightService
 {
-    private readonly ICharacterLookupService _characterLookupService;
-    private readonly IRepository<Character> _characterRepository;
+    private readonly IAttackPerformService _attackPerformService;
     private readonly IRandomGenerator _random;
 
-    public FightService(ICharacterLookupService characterLookupService, IRepository<Character> characterRepository,
+    public FightService(IAttackPerformService attackPerformService,
         IRandomGenerator random)
     {
-        _characterLookupService = characterLookupService;
-        _characterRepository = characterRepository;
+        _attackPerformService = attackPerformService;
         _random = random;
     }
 
     public async Task<ServiceResponse<AttackResultDto>> WeaponAttack(WeaponAttackDto weaponAttackDto)
     {
-        var response = new ServiceResponse<AttackResultDto>();
-        try
-        {
-            var attacker = await _characterLookupService.FindCharacterByUserAndCharacterId(weaponAttackDto.AttackerId);
-            var opponent = await _characterLookupService.FindCharacterByCharacterId(weaponAttackDto.OpponentId);
-
-            if (IsDefeated(opponent)) return BuildDefeatedResponse(opponent, response);
-
-            var damageDealt = DoWeaponAttack(attacker, opponent);
-            UpdateFightStatistics(attacker, opponent);
-            await _characterRepository.SaveChangesAsync();
-
-            if (IsDefeated(opponent)) response.Message = $"{opponent.Name} has been defeated";
-
-            response.Data = BuildAttackResultDto(attacker, opponent, damageDealt);
-        }
-        catch (Exception e)
-        {
-            response.Success = false;
-            response.Message = e.Message;
-        }
-
-        return response;
+        return await _attackPerformService.PerformAttack(weaponAttackDto,
+            (attacker, opponent) => DoWeaponAttack(attacker, opponent));
     }
 
-    private bool IsDefeated(Character character)
+    public async Task<ServiceResponse<AttackResultDto>> SkillAttack(SkillAttackDto skillAttackDto)
     {
-        return character.HitPoints <= 0;
-    }
-
-    private ServiceResponse<AttackResultDto> BuildDefeatedResponse(Character opponent,
-        ServiceResponse<AttackResultDto> response)
-    {
-        response.Success = false;
-        response.Message = $"{opponent.Name} has already been defeated";
-        return response;
+        return await _attackPerformService.PerformAttack(skillAttackDto,
+            (attacker, opponent) => DoSkillAttack(attacker, opponent, skillAttackDto.SkillId));
     }
 
     private int DoWeaponAttack(Character attacker, Character opponent)
@@ -63,35 +33,26 @@ public class FightService : IFightService
         if (attacker.Weapon is null)
             throw new NoWeaponFoundException(attacker.Id);
 
-        var damage = attacker.Weapon.Damage + _random.Next(attacker.Strength);
-        damage -= _random.Next(opponent.Defense);
+        return ApplyAttack(attacker.Weapon.Damage, attacker.Strength, opponent.Defense, opponent);
+    }
+
+    private int DoSkillAttack(Character attacker, Character opponent, int skillId)
+    {
+        var skill = attacker.Skills.FirstOrDefault(s => s.Id == skillId);
+        if (skill is null)
+            throw new SkillNotFoundException(skillId);
+
+        return ApplyAttack(skill.Damage, attacker.Intelligence, opponent.Defense, opponent);
+    }
+
+    private int ApplyAttack(int baseDamage, int attackerModifier, int opponentDefense,
+        Character opponent)
+    {
+        var damage = baseDamage + _random.Next(attackerModifier);
+        damage -= _random.Next(opponentDefense);
 
         if (damage > 0) opponent.HitPoints -= damage;
 
         return damage;
-    }
-
-    private void UpdateFightStatistics(Character attacker, Character opponent)
-    {
-        attacker.Fights += 1;
-        opponent.Fights += 1;
-
-        if (IsDefeated(opponent))
-        {
-            attacker.Victories += 1;
-            opponent.Defeats += 1;
-        }
-    }
-
-    private AttackResultDto BuildAttackResultDto(Character attacker, Character opponent, int damageDealt)
-    {
-        return new AttackResultDto
-        {
-            Attacker = attacker.Name,
-            Opponent = opponent.Name,
-            AttackerHp = attacker.HitPoints,
-            OpponentHp = opponent.HitPoints,
-            DamageDealt = damageDealt
-        };
     }
 }

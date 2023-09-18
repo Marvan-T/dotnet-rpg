@@ -7,6 +7,7 @@ public class Character
     public int HitPoints { get; set; } = 100;
     public int Strength { get; set; } = 10;
     public int Defense { get; set; } = 10;
+    public int Intelligence { get; set; }
     public RpgClass Class { get; set; } = RpgClass.Knight;
     public int UserId { get; set; } // not really required, see the notes on One-to-many relationship
 
@@ -29,7 +30,7 @@ public class Character
 
     public Weapon? Weapon { get; set; }
 
-    public ICollection<Skill> Skills { get; set; }
+    public ICollection<Skill> Skills { get; set; } = new List<Skill>();
     public int Fights { get; set; }
     public int Victories { get; set; }
     public int Defeats { get; set; }
