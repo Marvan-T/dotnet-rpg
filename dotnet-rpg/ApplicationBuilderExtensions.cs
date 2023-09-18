@@ -1,7 +1,4 @@
 using System.Text;
-using dotnet_rpg.Services.CharacterLookupService;
-using dotnet_rpg.Services.SkillService;
-using dotnet_rpg.Utility.RandomGeneration;
 
 namespace dotnet_rpg;
 
@@ -79,6 +76,7 @@ public static class ApplicationBuilderExtensions
         services.AddScoped<IRepository<Weapon>, WeaponRepository>();
         services.AddScoped<IRepository<Skill>, SkillRepository>();
         services.AddScoped<IFightService, FightService>();
+        services.AddScoped<IAttackPerformService, AttackPerformService>();
         services.AddScoped<ISkillService, SkillService>();
         services.AddScoped<ICharacterLookupService, CharacterLookupService>();
 
