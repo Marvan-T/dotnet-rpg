@@ -9,11 +9,11 @@ public class AttackPerformServiceTests
 {
     private readonly Mock<ICharacterLookupService> _characterLookupServiceMock = new();
     private readonly Mock<IRepository<Character>> _characterRepositoryMock = new();
-    private readonly AttackPerformService _service;
+    private readonly AttackPerformService _attackPerformService;
 
     public AttackPerformServiceTests()
     {
-        _service = new AttackPerformService(_characterLookupServiceMock.Object, _characterRepositoryMock.Object);
+        _attackPerformService = new AttackPerformService(_characterLookupServiceMock.Object, _characterRepositoryMock.Object);
     }
 
     [Fact]
@@ -26,7 +26,7 @@ public class AttackPerformServiceTests
             .ReturnsAsync(defeatedOpponent);
 
         // Act
-        var result = await _service.PerformAttack(attackDto, (a, o) => 10);
+        var result = await _attackPerformService.PerformAttack(attackDto, (a, o) => 10);
 
         // Assert
         result.Success.Should().BeFalse();
@@ -46,7 +46,7 @@ public class AttackPerformServiceTests
         _characterLookupServiceMock.Setup(x => x.FindCharacterByCharacterId(It.IsAny<int>())).ReturnsAsync(opponent);
 
         // Act
-        var result = await _service.PerformAttack(attackDto, (a, o) =>
+        var result = await _attackPerformService.PerformAttack(attackDto, (a, o) =>
         {
             opponent.HitPoints = 0;
             return 10;
@@ -66,7 +66,7 @@ public class AttackPerformServiceTests
             .Throws(new Exception("Test Exception"));
 
         // Act
-        var result = await _service.PerformAttack(attackDto, (a, o) => 10);
+        var result = await _attackPerformService.PerformAttack(attackDto, (a, o) => 10);
 
         // Assert
         result.Success.Should().BeFalse();
@@ -86,7 +86,7 @@ public class AttackPerformServiceTests
         _characterLookupServiceMock.Setup(x => x.FindCharacterByCharacterId(It.IsAny<int>())).ReturnsAsync(opponent);
 
         // Act
-        var result = await _service.PerformAttack(attackDto, (a, o) => a.HitPoints - o.HitPoints);
+        var result = await _attackPerformService.PerformAttack(attackDto, (a, o) => a.HitPoints - o.HitPoints);
 
         // Assert
         result.Data.DamageDealt.Should().Be(50);
@@ -105,7 +105,7 @@ public class AttackPerformServiceTests
         _characterLookupServiceMock.Setup(x => x.FindCharacterByCharacterId(It.IsAny<int>())).ReturnsAsync(opponent);
 
         // Act
-        await _service.PerformAttack(attackDto, (a, o) =>
+        await _attackPerformService.PerformAttack(attackDto, (a, o) =>
         {
             opponent.HitPoints = 0;
             return 50;
@@ -131,7 +131,7 @@ public class AttackPerformServiceTests
         _characterLookupServiceMock.Setup(x => x.FindCharacterByCharacterId(It.IsAny<int>())).ReturnsAsync(opponent);
 
         // Act
-        var result = await _service.PerformAttack(attackDto, (a, o) => 10);
+        var result = await _attackPerformService.PerformAttack(attackDto, (a, o) => 10);
 
         // Assert
         result.Data.Attacker.Should().Be(attacker.Name);
