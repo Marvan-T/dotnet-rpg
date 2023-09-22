@@ -38,4 +38,9 @@ public class WeaponRepository : IRepository<Weapon>
     {
         return _context.SaveChangesAsync();
     }
+
+    public Task<List<Weapon>> GetByIdsAsync(List<int> ids)
+    {
+        throw new NotImplementedException();
+    }
 }
