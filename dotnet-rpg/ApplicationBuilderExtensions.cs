@@ -79,6 +79,7 @@ public static class ApplicationBuilderExtensions
         services.AddScoped<IAttackPerformService, AttackPerformService>();
         services.AddScoped<ISkillService, SkillService>();
         services.AddScoped<ICharacterLookupService, CharacterLookupService>();
+        services.AddScoped<IFightLogger, FightLogger>();
 
         //If you create multiple instances of Random too closely together, they can end up using the same seed value and
         //thus producing the same sequence of random numbers. This often happens when Random objects are created in a tight loop.
