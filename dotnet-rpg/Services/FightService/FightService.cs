@@ -103,11 +103,14 @@ public class FightService : IFightService
                 return ((a, o) => DoSkillAttack(a, o, skill.Id), AttackType.Skill);
             case AttackType.Weapon:
                 return (DoWeaponAttack, AttackType.Weapon);
-            default:
+            case AttackType.Skip:
                 return (SkipAttack, AttackType.Skip);
+            default:
+                throw new ArgumentOutOfRangeException(nameof(attackType), attackType,
+                    "The provided attack type is not supported.");
         }
     }
-    
+
     private Character GetRandomOpponent(Character attacker, List<Character> characters)
     {
         var opponents = characters.Where(c => c.Id != attacker.Id).ToList();

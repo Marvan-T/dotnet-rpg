@@ -18,7 +18,10 @@ public class FightLogger : IFightLogger
     public void LogAttack(Character attacker, Character opponent, int damage, AttackType attackType,
         FightResultDto fightResult)
     {
-        fightResult.Log.Add(
-            $"{attacker.Name} deals {damage} to {opponent.Name} with a {attackType.ToString()} attack.");
+        var logMessage = damage < 0
+            ? $"{attacker.Name} wasn't able to deal damage to {opponent.Name} with a {attackType} attack."
+            : $"{attacker.Name} deals {damage} to {opponent.Name} with a {attackType} attack.";
+
+        fightResult.Log.Add(logMessage);
     }
 }
