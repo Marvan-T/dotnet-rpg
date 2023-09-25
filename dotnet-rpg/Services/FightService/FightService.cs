@@ -107,8 +107,7 @@ public class FightService : IFightService
                 return (SkipAttack, AttackType.Skip);
         }
     }
-
-
+    
     private Character GetRandomOpponent(Character attacker, List<Character> characters)
     {
         var opponents = characters.Where(c => c.Id != attacker.Id).ToList();
