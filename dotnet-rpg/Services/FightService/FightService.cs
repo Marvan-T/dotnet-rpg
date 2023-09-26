@@ -5,31 +5,34 @@ namespace dotnet_rpg.Services.FightService;
 public class FightService : IFightService
 {
     private readonly IAttackPerformService _attackPerformService;
+    private readonly IAttackService _attackService;
     private readonly ICharacterLookupService _characterLookupService;
     private readonly IRepository<Character> _characterRepository;
     private readonly IFightLogger _fightLogger;
     private readonly IRandomGenerator _random;
 
     public FightService(IAttackPerformService attackPerformService, ICharacterLookupService characterLookupService,
-        IRandomGenerator random, IRepository<Character> characterRepository, IFightLogger fightLogger)
+        IRandomGenerator random, IRepository<Character> characterRepository, IFightLogger fightLogger,
+        IAttackService attackService)
     {
         _attackPerformService = attackPerformService;
         _characterLookupService = characterLookupService;
         _random = random;
         _characterRepository = characterRepository;
         _fightLogger = fightLogger;
+        _attackService = attackService;
     }
 
     public async Task<ServiceResponse<AttackResultDto>> WeaponAttack(WeaponAttackDto weaponAttackDto)
     {
         return await _attackPerformService.PerformAttack(weaponAttackDto,
-            (attacker, opponent) => DoWeaponAttack(attacker, opponent));
+            (attacker, opponent) => _attackService.DoWeaponAttack(attacker, opponent));
     }
 
     public async Task<ServiceResponse<AttackResultDto>> SkillAttack(SkillAttackDto skillAttackDto)
     {
         return await _attackPerformService.PerformAttack(skillAttackDto,
-            (attacker, opponent) => DoSkillAttack(attacker, opponent, skillAttackDto.SkillId));
+            (attacker, opponent) => _attackService.DoSkillAttack(attacker, opponent, skillAttackDto.SkillId));
     }
 
     public async Task<ServiceResponse<FightResultDto>> Fight(FightRequestDto fightRequestDto)
@@ -100,11 +103,11 @@ public class FightService : IFightService
         {
             case AttackType.Skill:
                 var skill = attacker.Skills[_random.Next(attacker.Skills.Count)];
-                return ((a, o) => DoSkillAttack(a, o, skill.Id), AttackType.Skill);
+                return ((a, o) => _attackService.DoSkillAttack(a, o, skill.Id), AttackType.Skill);
             case AttackType.Weapon:
-                return (DoWeaponAttack, AttackType.Weapon);
+                return (_attackService.DoWeaponAttack, AttackType.Weapon);
             case AttackType.Skip:
-                return (SkipAttack, AttackType.Skip);
+                return (_attackService.SkipAttack, AttackType.Skip);
             default:
                 throw new ArgumentOutOfRangeException(nameof(attackType), attackType,
                     "The provided attack type is not supported.");
@@ -123,38 +126,5 @@ public class FightService : IFightService
         if (character.Weapon != null) attackOptions.Add(AttackType.Weapon);
         if (character.Skills.Any()) attackOptions.Add(AttackType.Skill);
         return attackOptions.Count == 0 ? AttackType.Skip : attackOptions[_random.Next(attackOptions.Count)];
-    }
-
-    private int DoWeaponAttack(Character attacker, Character opponent)
-    {
-        if (attacker.Weapon is null)
-            throw new NoWeaponFoundException(attacker.Id);
-
-        return ApplyAttack(attacker.Weapon.Damage, attacker.Strength, opponent.Defense, opponent);
-    }
-
-    private int DoSkillAttack(Character attacker, Character opponent, int skillId)
-    {
-        var skill = attacker.Skills.FirstOrDefault(s => s.Id == skillId);
-        if (skill is null)
-            throw new SkillNotFoundException(skillId);
-
-        return ApplyAttack(skill.Damage, attacker.Intelligence, opponent.Defense, opponent);
-    }
-
-    private int SkipAttack(Character attacker, Character opponent)
-    {
-        return 0; // No damage is dealt in a skip action
-    }
-
-    private int ApplyAttack(int baseDamage, int attackerModifier, int opponentDefense,
-        Character opponent)
-    {
-        var damage = baseDamage + _random.Next(attackerModifier);
-        damage -= _random.Next(opponentDefense);
-
-        if (damage > 0) opponent.HitPoints -= damage;
-
-        return damage;
     }
 }
