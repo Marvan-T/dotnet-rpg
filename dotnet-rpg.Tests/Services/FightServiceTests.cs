@@ -1,131 +1,128 @@
 using dotnet_rpg.Dtos.Fight;
-using dotnet_rpg.Exceptions;
+using dotnet_rpg.Repository;
 using dotnet_rpg.Services.AttackPerformService;
+using dotnet_rpg.Services.AttackService;
+using dotnet_rpg.Services.CharacterLookupService;
+using dotnet_rpg.Services.FightLogger;
 using dotnet_rpg.Services.FightService;
 using dotnet_rpg.Utility.RandomGeneration;
 
 public class FightServiceTests
 {
-    private readonly Mock<IAttackPerformService> _attackPerformServiceMock;
+    private readonly Mock<IAttackPerformService> _attackPerformServiceMock = new();
+    private readonly Mock<IAttackService> _attackServiceMock = new();
+    private readonly Mock<ICharacterLookupService> _characterLookupServiceMock = new();
+    private readonly Mock<IRepository<Character>> _characterRepositoryMock = new();
+    private readonly Mock<IFightLogger> _fightLoggerMock = new();
     private readonly FightService _fightService;
-    private readonly Mock<IRandomGenerator> _randomGeneratorMock;
+    private readonly Mock<IRandomGenerator> _randomMock = new();
 
     public FightServiceTests()
     {
-        _attackPerformServiceMock = new Mock<IAttackPerformService>();
-        _randomGeneratorMock = new Mock<IRandomGenerator>();
-
-        _fightService = new FightService(_attackPerformServiceMock.Object, _randomGeneratorMock.Object);
+        _fightService = new FightService(
+            _attackPerformServiceMock.Object,
+            _characterLookupServiceMock.Object,
+            _randomMock.Object,
+            _characterRepositoryMock.Object,
+            _fightLoggerMock.Object,
+            _attackServiceMock.Object);
     }
 
     [Fact]
-    public async Task WeaponAttack_NoWeaponFound_ThrowsNoWeaponFoundException()
+    public async Task WeaponAttack_PerformsWeaponAttack()
     {
-        // Arrange
-        var weaponAttackDto = new WeaponAttackDto { AttackerId = 1, OpponentId = 2 };
-        var attackerWithoutWeapon = new Character { Id = 1, Weapon = null };
-        var opponent = new Character { Id = 2 };
+        var weaponAttackDto = new WeaponAttackDto();
+        var expectedAttackResult = new ServiceResponse<AttackResultDto>();
 
-        _attackPerformServiceMock
-            .Setup(s => s.PerformAttack(weaponAttackDto,
-                It.IsAny<Func<Character, Character, int>>()))
-            .Returns<IAttackDto, Func<Character, Character, int>>((dto, func) => Task.FromResult(
-                new ServiceResponse<AttackResultDto>
-                {
-                    Data = new AttackResultDto { DamageDealt = func.Invoke(attackerWithoutWeapon, opponent) }
-                }));
+        _attackPerformServiceMock.Setup(a => a.PerformAttack(
+                weaponAttackDto, It.IsAny<Func<Character, Character, int>>()))
+            .ReturnsAsync(expectedAttackResult);
 
-
-        // Act 
-        Func<Task> act = async () => await _fightService.WeaponAttack(weaponAttackDto);
-
-        // Assert
-        await act.Should().ThrowAsync<NoWeaponFoundException>();
-    }
-
-
-    [Fact]
-    public async Task SkillAttack_SkillNotFound_ThrowsSkillNotFoundException()
-    {
-        // Arrange
-        var skillAttackDto = new SkillAttackDto { AttackerId = 1, OpponentId = 2, SkillId = 999 };
-        var attackerWithoutSkill = new Character { Id = 1 };
-        var opponent = new Character { Id = 2 };
-
-        _attackPerformServiceMock
-            .Setup(s => s.PerformAttack(skillAttackDto, It.IsAny<Func<Character, Character, int>>()))
-            .Returns<IAttackDto, Func<Character, Character, int>>((dto, func) => Task.FromResult(
-                new ServiceResponse<AttackResultDto>
-                {
-                    Data = new AttackResultDto { DamageDealt = func.Invoke(attackerWithoutSkill, opponent) }
-                }));
-
-        // Act 
-        Func<Task> act = async () => await _fightService.SkillAttack(skillAttackDto);
-
-        // Assert 
-        await act.Should().ThrowAsync<SkillNotFoundException>();
-    }
-
-    [Fact]
-    public async Task WeaponAttack_ValidAttack_ComputesDamageCorrectly()
-    {
-        // Arrange
-        var weaponAttackDto = new WeaponAttackDto { AttackerId = 1, OpponentId = 2 };
-        var attacker = new Character { Id = 1, Weapon = new Weapon { Damage = 5 }, Strength = 10 };
-        var opponent = new Character { Id = 2, Defense = 5, HitPoints = 100 };
-
-        _randomGeneratorMock.Setup(r => r.Next(attacker.Strength))
-            .Returns(5); // simulate a random of 5 for attacker strength
-        _randomGeneratorMock.Setup(r => r.Next(opponent.Defense))
-            .Returns(2); // simulate a random of 2 for opponent defense
-
-        _attackPerformServiceMock
-            .Setup(s => s.PerformAttack(weaponAttackDto, It.IsAny<Func<Character, Character, int>>()))
-            .Returns<IAttackDto, Func<Character, Character, int>>((dto, func) => Task.FromResult(
-                new ServiceResponse<AttackResultDto>
-                {
-                    Data = new AttackResultDto { DamageDealt = func.Invoke(attacker, opponent) }
-                }));
-
-        // Act
         var result = await _fightService.WeaponAttack(weaponAttackDto);
 
-        // Assert
-        result.Data.DamageDealt.Should().Be(8); // 5 base + 5 random - 2 defense = 8
-        opponent.HitPoints.Should().Be(92); // 100 - 8 = 92
+        result.Should().BeEquivalentTo(expectedAttackResult);
     }
 
     [Fact]
-    public async Task SkillAttack_ValidAttack_ComputesDamageCorrectly()
+    public async Task SkillAttack_PerformsSkillAttack()
     {
-        // Arrange
-        var skillAttackDto = new SkillAttackDto { AttackerId = 1, OpponentId = 2, SkillId = 1 };
-        var skill = new Skill { Id = 1, Damage = 5 };
-        var attacker = new Character
-        {
-            Id = 1, Skills = new List<Skill> { skill }, Intelligence = 10
-        }; // Assuming that you use Intelligence or some other property for skill modifier.
-        var opponent = new Character { Id = 2, Defense = 5, HitPoints = 100 };
+        var skillAttackDto = new SkillAttackDto { SkillId = 123 };
+        var expectedAttackResult = new ServiceResponse<AttackResultDto>();
 
-        _randomGeneratorMock.Setup(r => r.Next(attacker.Intelligence))
-            .Returns(5); // simulate a random of 5 for attacker intelligence
-        _randomGeneratorMock.Setup(r => r.Next(opponent.Defense))
-            .Returns(2); // simulate a random of 2 for opponent defense
+        _attackPerformServiceMock.Setup(a => a.PerformAttack(
+                skillAttackDto, It.IsAny<Func<Character, Character, int>>()))
+            .ReturnsAsync(expectedAttackResult);
 
-        _attackPerformServiceMock
-            .Setup(s => s.PerformAttack(skillAttackDto, It.IsAny<Func<Character, Character, int>>()))
-            .Returns<IAttackDto, Func<Character, Character, int>>((dto, func) => Task.FromResult(
-                new ServiceResponse<AttackResultDto>
-                {
-                    Data = new AttackResultDto { DamageDealt = func.Invoke(attacker, opponent) }
-                }));
-
-        // Act
         var result = await _fightService.SkillAttack(skillAttackDto);
 
-        // Assert
-        result.Data.DamageDealt.Should().Be(8); // 5 base (from skill) + 5 random (from intelligence) - 2 defense = 8
-        opponent.HitPoints.Should().Be(92); // 100 - 8 = 92
+        result.Should().BeEquivalentTo(expectedAttackResult);
+    }
+
+    [Fact]
+    public async Task Fight_ThrowsException_ReturnsErrorResponse()
+    {
+        var fightRequestDto = new FightRequestDto { CharacterIds = new List<int> { 1, 2 } };
+
+        _characterLookupServiceMock.Setup(c => c.FindCharactersByIds(It.IsAny<List<int>>())) // Change made here
+            .ThrowsAsync(new Exception("TestException"));
+
+        var result = await _fightService.Fight(fightRequestDto);
+
+        result.Success.Should().BeFalse();
+        result.Message.Should().Be("TestException");
+    }
+
+    [Fact]
+    public async Task Fight_ExecutesWeaponAttackAndLogsVictory_WhenRandomlySelected()
+    {
+        var fightRequestDto = new FightRequestDto
+        {
+            CharacterIds = new List<int> { 1, 2 }
+        };
+
+        var (characters, expectedAttackResult) = SetupForWeaponAttack();
+
+        _randomMock.SetupSequence(r => r.Next(It.IsAny<int>()))
+            .Returns(0) // For selecting AttackType.Weapon
+            .Returns(0); // For selecting the opponent
+
+        await _fightService.Fight(fightRequestDto);
+
+        // Specific assertions for `FightResultDto` isn't necessary as this is just a string of logs that is passed in
+        _attackServiceMock.Verify(a => a.DoWeaponAttack(It.IsAny<Character>(), It.IsAny<Character>()), Times.Once);
+        _fightLoggerMock.Verify(
+            l => l.LogAttack(characters[0], characters[1], expectedAttackResult.DamageDealt, AttackType.Weapon,
+                It.IsAny<FightResultDto>()), Times.Once);
+        _fightLoggerMock.Verify(
+            l => l.LogVictory(characters[0], characters[1], It.IsAny<FightResultDto>()), Times.Once);
+    }
+
+
+
+    private (List<Character>, AttackResultDto)  SetupForWeaponAttack(int opponentHP = 5, int damageDealt = 5)
+    {
+        var characters = new List<Character>
+        {
+            new() { Id = 1, HitPoints = 100, Weapon = new Weapon(), Skills = new List<Skill>() },
+            new() { Id = 2, HitPoints = opponentHP, Weapon = null, Skills = new List<Skill>() }
+        };
+
+        _characterLookupServiceMock.Setup(c => c.FindCharactersByIds(new List<int> { 1, 2 })).ReturnsAsync(characters);
+
+        _attackServiceMock.Setup(a => a.DoWeaponAttack(characters[0], characters[1]))
+            .Callback((Character _, Character defender) => { defender.HitPoints = 0; });
+        
+        var attackResultDto = new AttackResultDto { DamageDealt = damageDealt };
+
+        _attackPerformServiceMock.Setup(a => a.ExecuteAttack(
+                It.Is<Character>(c => c == characters[0]),
+                It.Is<Character>(c => c == characters[1]),
+                It.IsAny<Func<Character, Character, int>>()))
+            .Callback<Character, Character, Func<Character, Character, int>>((attacker, defender, attackFunc) =>
+                attackFunc(attacker,
+                    defender)) // If the `DoWeaponAttack` function is not invoked HitPoints won't be reset to 0, so no explicit check is required for the method reference we pass
+            .ReturnsAsync(new AttackResultDto { DamageDealt = damageDealt });
+
+        return (characters, attackResultDto);
     }
 }
