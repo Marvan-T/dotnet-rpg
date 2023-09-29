@@ -227,4 +227,110 @@ public class FightServiceTests
 
         return characters;
     }
+
+    [Fact]
+    public async Task Fight_LogsWeaponAttack_WhenCharacterHasWeaponButNoSkills()
+    {
+        var fightRequestDto = new FightRequestDto
+        {
+            CharacterIds = new List<int> { 1, 2 }
+        };
+
+        var characters = new List<Character>
+        {
+            new() { Id = 1, HitPoints = 100, Weapon = new Weapon(), Skills = new List<Skill>() },
+            new() { Id = 2, HitPoints = 100, Weapon = null, Skills = new List<Skill>() },
+            new() { Id = 3, HitPoints = 100, Weapon = null, Skills = new List<Skill>() }
+        };
+
+        _randomMock.SetupSequence(r => r.Next(characters.Count - 1))
+            .Returns(0)
+            .Throws(new Exception(
+                "LoopTerminationForTestException")); // Second call throws an exception to terminate the loop; 
+
+        _randomMock.Setup(r => r.Next(1)).Returns(0); // Select weapon attack
+        _characterLookupServiceMock.Setup(c => c.FindCharactersByIds(new List<int> { 1, 2 })).ReturnsAsync(characters);
+
+        var DamageDealt = 5;
+        _attackPerformServiceMock.Setup(a =>
+                a.ExecuteAttack(It.IsAny<Character>(), It.IsAny<Character>(),
+                    It.IsAny<Func<Character, Character, int>>()))
+            .ReturnsAsync(new AttackResultDto { DamageDealt = DamageDealt });
+
+
+        await _fightService.Fight(fightRequestDto);
+
+        _fightLoggerMock.Verify(
+            l => l.LogAttack(characters[0], characters[1], DamageDealt, AttackType.Weapon,
+                It.IsAny<FightResultDto>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task Fight_LogsSkillAttack_WhenCharacterHasSkillsButNoWeapon()
+    {
+        var fightRequestDto = new FightRequestDto
+        {
+            CharacterIds = new List<int> { 1, 2 }
+        };
+
+        var characters = new List<Character>
+        {
+            new()
+            {
+                Id = 1, HitPoints = 100, Weapon = null, Skills = new List<Skill> { new() { Id = 101 } }
+            }, // Character with skills but no weapon
+            new() { Id = 2, HitPoints = 100, Weapon = null, Skills = new List<Skill>() },
+            new() { Id = 2, HitPoints = 100, Weapon = null, Skills = new List<Skill>() }
+        };
+
+        _randomMock.SetupSequence(r => r.Next(characters.Count - 1))
+            .Returns(0)
+            .Throws(new Exception(
+                "LoopTerminationForTestException"));
+
+        _randomMock.Setup(r => r.Next(1))
+            .Returns(0); // Selecting SkillAttack
+
+        _characterLookupServiceMock.Setup(c => c.FindCharactersByIds(new List<int> { 1, 2 })).ReturnsAsync(characters);
+
+        var DamageDealt = 10;
+        _attackPerformServiceMock.Setup(a =>
+                a.ExecuteAttack(It.IsAny<Character>(), It.IsAny<Character>(),
+                    It.IsAny<Func<Character, Character, int>>()))
+            .ReturnsAsync(new AttackResultDto { DamageDealt = DamageDealt });
+
+        await _fightService.Fight(fightRequestDto);
+
+        _fightLoggerMock.Verify(
+            l => l.LogAttack(characters[0], characters[1], DamageDealt, AttackType.Skill,
+                It.IsAny<FightResultDto>()), Times.Once);
+    }
+
+
+    [Fact]
+    public async Task Fight_LogsSkipAttack_WhenCharacterHasNoWeaponAndNoSkills()
+    {
+        var fightRequestDto = new FightRequestDto
+        {
+            CharacterIds = new List<int> { 1, 2 }
+        };
+
+        var characters = new List<Character>
+        {
+            new() { Id = 1, HitPoints = 100, Weapon = null, Skills = new List<Skill>() },
+            new() { Id = 2, HitPoints = 100, Weapon = null, Skills = new List<Skill>() }
+        };
+
+        _randomMock.SetupSequence(r => r.Next(characters.Count - 1))
+            .Returns(0)
+            .Throws(new Exception(
+                "LoopTerminationForTestException"));
+
+        _characterLookupServiceMock.Setup(c => c.FindCharactersByIds(new List<int> { 1, 2 })).ReturnsAsync(characters);
+
+        await _fightService.Fight(fightRequestDto);
+
+        _fightLoggerMock.Verify(
+            l => l.LogSkipTurn(characters[0], It.IsAny<FightResultDto>()), Times.Once);
+    }
 }
