@@ -31,6 +31,7 @@ public class FightServiceTests
     [Fact]
     public async Task WeaponAttack_PerformsWeaponAttack()
     {
+        //Arrange
         var weaponAttackDto = new WeaponAttackDto();
         var expectedAttackResult = new ServiceResponse<AttackResultDto>();
 
@@ -38,14 +39,17 @@ public class FightServiceTests
                 weaponAttackDto, It.IsAny<Func<Character, Character, int>>()))
             .ReturnsAsync(expectedAttackResult);
 
+        //Act
         var result = await _fightService.WeaponAttack(weaponAttackDto);
 
+        //Assert
         result.Should().BeEquivalentTo(expectedAttackResult);
     }
 
     [Fact]
     public async Task SkillAttack_PerformsSkillAttack()
     {
+        //Arrange
         var skillAttackDto = new SkillAttackDto { SkillId = 123 };
         var expectedAttackResult = new ServiceResponse<AttackResultDto>();
 
@@ -53,8 +57,10 @@ public class FightServiceTests
                 skillAttackDto, It.IsAny<Func<Character, Character, int>>()))
             .ReturnsAsync(expectedAttackResult);
 
+        //Act
         var result = await _fightService.SkillAttack(skillAttackDto);
 
+        //Assert
         result.Should().BeEquivalentTo(expectedAttackResult);
     }
 
@@ -62,7 +68,6 @@ public class FightServiceTests
     public async Task Fight_ThrowsException_ReturnsErrorResponse()
     {
         var fightRequestDto = new FightRequestDto { CharacterIds = new List<int> { 1, 2 } };
-
         _characterLookupServiceMock.Setup(c => c.FindCharactersByIds(It.IsAny<List<int>>())) // Change made here
             .ThrowsAsync(new Exception("TestException"));
 
@@ -75,6 +80,7 @@ public class FightServiceTests
     [Fact]
     public async Task Fight_ExecutesWeaponAttackAndLogsVictory_WhenRandomlySelected()
     {
+        //Arrange
         var fightRequestDto = new FightRequestDto
         {
             CharacterIds = new List<int> { 1, 2 }
@@ -86,8 +92,10 @@ public class FightServiceTests
             .Returns(0) // For selecting AttackType.Weapon
             .Returns(0); // For selecting the opponent
 
+        //Act
         await _fightService.Fight(fightRequestDto);
 
+        //Assert
         // Specific assertions for `FightResultDto` isn't necessary as this is just a string of logs that is passed in
         _attackServiceMock.Verify(a => a.DoWeaponAttack(It.IsAny<Character>(), It.IsAny<Character>()), Times.Once);
         _fightLoggerMock.Verify(
@@ -128,6 +136,7 @@ public class FightServiceTests
     [Fact]
     public async Task Fight_ExecutesSkillAttackAndLogsVictory_WhenRandomlySelected()
     {
+        //Arrange
         var fightRequestDto = new FightRequestDto
         {
             CharacterIds = new List<int> { 1, 2 }
@@ -139,9 +148,10 @@ public class FightServiceTests
         _randomMock.SetupSequence(r => r.Next(0)).Returns(1); // For Skill Attack Type
         _randomMock.SetupSequence(r => r.Next(characters[1].Skills.Count)).Returns(0); //For selecting the skill
 
-
+        //Act
         await _fightService.Fight(fightRequestDto);
 
+        //Assert
         _attackServiceMock.Verify(a => a.DoSkillAttack(It.IsAny<Character>(), It.IsAny<Character>(), It.IsAny<int>()),
             Times.Once);
         _fightLoggerMock.Verify(
@@ -181,6 +191,7 @@ public class FightServiceTests
     [Fact]
     public async Task Fight_ExecutesSkipAttackAndLogsSkipTurn_WhenRandomlySelected()
     {
+        //Arrange
         var fightRequestDto = new FightRequestDto
         {
             CharacterIds = new List<int> { 1, 2 }
@@ -194,8 +205,10 @@ public class FightServiceTests
                 "LoopTerminationForTestException")); // Second call throws an exception to terminate the loop
         _randomMock.SetupSequence(r => r.Next(0)).Returns(2); // For Skip Attack Type
 
+        //Act
         await _fightService.Fight(fightRequestDto);
 
+        //Assert
         _attackServiceMock.Verify(a => a.SkipAttack(characters[0], characters[1]),
             Times.Once);
         _fightLoggerMock.Verify(
@@ -231,6 +244,7 @@ public class FightServiceTests
     [Fact]
     public async Task Fight_LogsWeaponAttack_WhenCharacterHasWeaponButNoSkills()
     {
+        //Arrange
         var fightRequestDto = new FightRequestDto
         {
             CharacterIds = new List<int> { 1, 2 }
@@ -257,9 +271,10 @@ public class FightServiceTests
                     It.IsAny<Func<Character, Character, int>>()))
             .ReturnsAsync(new AttackResultDto { DamageDealt = DamageDealt });
 
-
+        //Act
         await _fightService.Fight(fightRequestDto);
 
+        //Assert
         _fightLoggerMock.Verify(
             l => l.LogAttack(characters[0], characters[1], DamageDealt, AttackType.Weapon,
                 It.IsAny<FightResultDto>()), Times.Once);
@@ -268,6 +283,7 @@ public class FightServiceTests
     [Fact]
     public async Task Fight_LogsSkillAttack_WhenCharacterHasSkillsButNoWeapon()
     {
+        // Arrange
         var fightRequestDto = new FightRequestDto
         {
             CharacterIds = new List<int> { 1, 2 }
@@ -299,8 +315,10 @@ public class FightServiceTests
                     It.IsAny<Func<Character, Character, int>>()))
             .ReturnsAsync(new AttackResultDto { DamageDealt = DamageDealt });
 
+        //Act
         await _fightService.Fight(fightRequestDto);
 
+        //Assert
         _fightLoggerMock.Verify(
             l => l.LogAttack(characters[0], characters[1], DamageDealt, AttackType.Skill,
                 It.IsAny<FightResultDto>()), Times.Once);
@@ -310,6 +328,7 @@ public class FightServiceTests
     [Fact]
     public async Task Fight_LogsSkipAttack_WhenCharacterHasNoWeaponAndNoSkills()
     {
+        // Arange
         var fightRequestDto = new FightRequestDto
         {
             CharacterIds = new List<int> { 1, 2 }
@@ -328,8 +347,10 @@ public class FightServiceTests
 
         _characterLookupServiceMock.Setup(c => c.FindCharactersByIds(new List<int> { 1, 2 })).ReturnsAsync(characters);
 
+        //Act
         await _fightService.Fight(fightRequestDto);
 
+        //Assert
         _fightLoggerMock.Verify(
             l => l.LogSkipTurn(characters[0], It.IsAny<FightResultDto>()), Times.Once);
     }
