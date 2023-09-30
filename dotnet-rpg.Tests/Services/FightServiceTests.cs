@@ -5,6 +5,7 @@ using dotnet_rpg.Services.AttackService;
 using dotnet_rpg.Services.CharacterLookupService;
 using dotnet_rpg.Services.FightLogger;
 using dotnet_rpg.Services.FightService;
+using dotnet_rpg.Tests.Services.Test_Helpers;
 using dotnet_rpg.Utility.RandomGeneration;
 
 public class FightServiceTests
@@ -96,13 +97,10 @@ public class FightServiceTests
         await _fightService.Fight(fightRequestDto);
 
         //Assert
-        // Specific assertions for `FightResultDto` isn't necessary as this is just a string of logs that is passed in
-        _attackServiceMock.Verify(a => a.DoWeaponAttack(It.IsAny<Character>(), It.IsAny<Character>()), Times.Once);
-        _fightLoggerMock.Verify(
-            l => l.LogAttack(characters[0], characters[1], expectedAttackResult.DamageDealt, AttackType.Weapon,
-                It.IsAny<FightResultDto>()), Times.Once);
-        _fightLoggerMock.Verify(
-            l => l.LogVictory(characters[0], characters[1], It.IsAny<FightResultDto>()), Times.Once);
+        FightServiceTestHelper.AssertLog(_fightLoggerMock, characters, AttackType.Weapon, Times.Once(),
+            expectedAttackResult.DamageDealt);
+        FightServiceTestHelper.AssertWeaponAttack(_attackServiceMock, characters[0], characters[1], Times.Once());
+        FightServiceTestHelper.AssertLogVictory(_fightLoggerMock, characters, Times.Once());
     }
 
 
@@ -152,13 +150,11 @@ public class FightServiceTests
         await _fightService.Fight(fightRequestDto);
 
         //Assert
-        _attackServiceMock.Verify(a => a.DoSkillAttack(It.IsAny<Character>(), It.IsAny<Character>(), It.IsAny<int>()),
-            Times.Once);
-        _fightLoggerMock.Verify(
-            l => l.LogAttack(characters[0], characters[1], expectedAttackResult.DamageDealt, AttackType.Skill,
-                It.IsAny<FightResultDto>()), Times.Once);
-        _fightLoggerMock.Verify(
-            l => l.LogVictory(characters[0], characters[1], It.IsAny<FightResultDto>()), Times.Once);
+        FightServiceTestHelper.AssertSkillAttack(_attackServiceMock, characters[0], characters[1],
+            characters[0].Skills[0].Id, Times.Once());
+        FightServiceTestHelper.AssertLog(_fightLoggerMock, characters, AttackType.Skill, Times.Once(),
+            expectedAttackResult.DamageDealt);
+        FightServiceTestHelper.AssertLogVictory(_fightLoggerMock, characters, Times.Once());
     }
 
     private (List<Character>, AttackResultDto) SetupForSkillAttack(int opponentHP = 5, int damageDealt = 5)
@@ -209,13 +205,9 @@ public class FightServiceTests
         await _fightService.Fight(fightRequestDto);
 
         //Assert
-        _attackServiceMock.Verify(a => a.SkipAttack(characters[0], characters[1]),
-            Times.Once);
-        _fightLoggerMock.Verify(
-            l => l.LogSkipTurn(characters[0], It.IsAny<FightResultDto>()), Times.Once);
-        // There shouldn't be any victory log for a skip attack
-        _fightLoggerMock.Verify(
-            l => l.LogVictory(It.IsAny<Character>(), It.IsAny<Character>(), It.IsAny<FightResultDto>()), Times.Never);
+        FightServiceTestHelper.AssertSkipAttack(_attackServiceMock, characters[0], characters[1], Times.Once());
+        FightServiceTestHelper.AssertLog(_fightLoggerMock, characters, AttackType.Skip, Times.Once());
+        FightServiceTestHelper.AssertLogVictory(_fightLoggerMock, characters, Times.Never());
     }
 
     private List<Character> SetupForSkipAttack()
@@ -275,9 +267,7 @@ public class FightServiceTests
         await _fightService.Fight(fightRequestDto);
 
         //Assert
-        _fightLoggerMock.Verify(
-            l => l.LogAttack(characters[0], characters[1], DamageDealt, AttackType.Weapon,
-                It.IsAny<FightResultDto>()), Times.Once);
+        FightServiceTestHelper.AssertLog(_fightLoggerMock, characters, AttackType.Weapon, Times.Once(), DamageDealt);
     }
 
     [Fact]
@@ -319,9 +309,7 @@ public class FightServiceTests
         await _fightService.Fight(fightRequestDto);
 
         //Assert
-        _fightLoggerMock.Verify(
-            l => l.LogAttack(characters[0], characters[1], DamageDealt, AttackType.Skill,
-                It.IsAny<FightResultDto>()), Times.Once);
+        FightServiceTestHelper.AssertLog(_fightLoggerMock, characters, AttackType.Skill, Times.Once(), DamageDealt);
     }
 
 
@@ -351,7 +339,6 @@ public class FightServiceTests
         await _fightService.Fight(fightRequestDto);
 
         //Assert
-        _fightLoggerMock.Verify(
-            l => l.LogSkipTurn(characters[0], It.IsAny<FightResultDto>()), Times.Once);
+        FightServiceTestHelper.AssertLog(_fightLoggerMock, characters, AttackType.Skip, Times.Once());
     }
 }
