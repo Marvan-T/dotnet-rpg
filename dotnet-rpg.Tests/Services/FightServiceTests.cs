@@ -79,7 +79,7 @@ public class FightServiceTests
     }
 
     [Fact]
-    public async Task Fight_ExecutesWeaponAttackAndLogsVictory_WhenRandomlySelected()
+    public async Task Fight_AttackerExecutesWeaponAttackAndLogsVictory()
     {
         //Arrange
         var fightRequestDto = new FightRequestDto
@@ -100,7 +100,7 @@ public class FightServiceTests
     }
 
     [Fact]
-    public async Task Fight_ExecutesSkillAttackAndLogsVictory_WhenRandomlySelected()
+    public async Task Fight_AttackerExecutesSkillAttackAndLogsVictory()
     {
         //Arrange
         var fightRequestDto = new FightRequestDto
@@ -131,7 +131,14 @@ public class FightServiceTests
             CharacterIds = new List<int> { 1, 2 }
         };
 
-        var (characters, _) = SetupForAttack(AttackType.Skip);
+        var attackerWithNoSkillOrWeapon = new Character
+        {
+            Id = 1,
+            HitPoints = 100,
+            Weapon = null,
+            Skills = new List<Skill>()
+        };
+        var (characters, _) = SetupForAttack(AttackType.Skip, attackerWithNoSkillOrWeapon);
 
         //Act
         await _fightService.Fight(fightRequestDto);
@@ -142,40 +149,45 @@ public class FightServiceTests
         FightServiceTestHelper.AssertLogVictory(_fightLoggerMock, characters, Times.Never());
     }
 
-    private (List<Character>, AttackResultDto?) SetupForAttack(AttackType type, int opponentHP = 5, int damageDealt = 5)
+    private (List<Character>, AttackResultDto?) SetupForAttack(AttackType type, Character? attacker = null,
+        int opponentHP = 5, int damageDealt = 5)
     {
-        var SkillID = 1;
+        var defaultAttacker = new Character
+        {
+            Id = 1,
+            HitPoints = 100,
+            Weapon = new Weapon(),
+            Skills = new List<Skill> { new() { Id = 1 } }
+        };
+
         var characters = new List<Character>
         {
-            new()
-            {
-                Id = 1, HitPoints = 100, Weapon = type == AttackType.Weapon ? new Weapon() : null,
-                Skills = type == AttackType.Skill ? new List<Skill> { new() { Id = SkillID } } : new List<Skill>()
-            },
+            attacker ?? defaultAttacker,
             new() { Id = 2, HitPoints = opponentHP, Weapon = null, Skills = new List<Skill>() }
         };
 
-        _characterLookupServiceMock.Setup(c => c.FindCharactersByIds(new List<int> { 1, 2 })).ReturnsAsync(characters);
+        _characterLookupServiceMock.Setup(c => c.FindCharactersByIds(new List<int> { characters[0].Id, 2 }))
+            .ReturnsAsync(characters);
 
         switch (type)
         {
             case AttackType.Weapon:
-                _randomMock.SetupSequence(r => r.Next(It.IsAny<int>())).Returns(0).Returns(0);
+                _randomMock.Setup(r => r.Next(characters.Count - 1)).Returns(0);
+                _randomMock.Setup(r => r.Next(2)).Returns(0); //Selecting Weapon attack
                 _attackServiceMock.Setup(a => a.DoWeaponAttack(characters[0], characters[1]))
                     .Callback((Character _, Character defender) => { defender.HitPoints = 0; });
                 break;
             case AttackType.Skill:
-                _randomMock.SetupSequence(r => r.Next(characters.Count - 1)).Returns(0);
-                _randomMock.SetupSequence(r => r.Next(0)).Returns(1);
-                _randomMock.SetupSequence(r => r.Next(characters[1].Skills.Count)).Returns(0);
-                _attackServiceMock.Setup(a => a.DoSkillAttack(characters[0], characters[1], SkillID))
+                _randomMock.Setup(r => r.Next(characters.Count - 1)).Returns(0);
+                _randomMock.Setup(r => r.Next(2)).Returns(1); //Selecting Skill attack
+                _randomMock.Setup(r => r.Next(characters[1].Skills.Count)).Returns(0);
+                _attackServiceMock.Setup(a => a.DoSkillAttack(characters[0], characters[1], characters[0].Skills[0].Id))
                     .Callback((Character _, Character defender, int _) => { defender.HitPoints = 0; });
                 break;
             case AttackType.Skip:
                 _randomMock.SetupSequence(r => r.Next(characters.Count - 1)).Returns(0)
                     .Throws(new Exception("LoopTerminationForTestException"));
-                //since character does not have a weapon or skill, the Skip attack type should be chosen
-                // _randomMock.SetupSequence(r => r.Next(0)).Returns(2);
+                // since character does not have a weapon or skill, the Skip attack type should be chosen
                 break;
         }
 
@@ -185,12 +197,13 @@ public class FightServiceTests
                 It.Is<Character>(c => c == characters[1]),
                 It.IsAny<Func<Character, Character, int>>()))
             .Callback<Character, Character, Func<Character, Character, int>>((attacker, defender, attackFunc) =>
-                attackFunc(attacker, defender))
+                attackFunc.Invoke(attacker, defender))
             .ReturnsAsync(attackResultDto);
 
         return (characters, type == AttackType.Skip ? null : attackResultDto);
     }
-    
+
+
     [Fact]
     public async Task Fight_LogsWeaponAttack_WhenCharacterHasWeaponButNoSkills()
     {
@@ -200,32 +213,22 @@ public class FightServiceTests
             CharacterIds = new List<int> { 1, 2 }
         };
 
-        var characters = new List<Character>
+        var attackerWithWeapon = new Character
         {
-            new() { Id = 1, HitPoints = 100, Weapon = new Weapon(), Skills = new List<Skill>() },
-            new() { Id = 2, HitPoints = 100, Weapon = null, Skills = new List<Skill>() },
-            new() { Id = 3, HitPoints = 100, Weapon = null, Skills = new List<Skill>() }
+            Id = 1,
+            HitPoints = 100,
+            Weapon = new Weapon(),
+            Skills = new List<Skill>()
         };
 
-        _randomMock.SetupSequence(r => r.Next(characters.Count - 1))
-            .Returns(0)
-            .Throws(new Exception(
-                "LoopTerminationForTestException")); // Second call throws an exception to terminate the loop; 
-
-        _randomMock.Setup(r => r.Next(1)).Returns(0); // Select weapon attack
-        _characterLookupServiceMock.Setup(c => c.FindCharactersByIds(new List<int> { 1, 2 })).ReturnsAsync(characters);
-
-        var DamageDealt = 5;
-        _attackPerformServiceMock.Setup(a =>
-                a.ExecuteAttack(It.IsAny<Character>(), It.IsAny<Character>(),
-                    It.IsAny<Func<Character, Character, int>>()))
-            .ReturnsAsync(new AttackResultDto { DamageDealt = DamageDealt });
+        var (characters, expectedAttackResult) = SetupForAttack(AttackType.Weapon, attackerWithWeapon);
 
         //Act
         await _fightService.Fight(fightRequestDto);
 
         //Assert
-        FightServiceTestHelper.AssertLog(_fightLoggerMock, characters, AttackType.Weapon, Times.Once(), DamageDealt);
+        FightServiceTestHelper.AssertLog(_fightLoggerMock, characters, AttackType.Weapon, Times.Once(),
+            expectedAttackResult.DamageDealt);
     }
 
     [Fact]
@@ -237,37 +240,21 @@ public class FightServiceTests
             CharacterIds = new List<int> { 1, 2 }
         };
 
-        var characters = new List<Character>
+        var attackerWithSkill = new Character
         {
-            new()
-            {
-                Id = 1, HitPoints = 100, Weapon = null, Skills = new List<Skill> { new() { Id = 101 } }
-            }, // Character with skills but no weapon
-            new() { Id = 2, HitPoints = 100, Weapon = null, Skills = new List<Skill>() },
-            new() { Id = 2, HitPoints = 100, Weapon = null, Skills = new List<Skill>() }
+            Id = 1,
+            HitPoints = 100,
+            Weapon = null,
+            Skills = new List<Skill> { new() { Id = 1 } }
         };
 
-        _randomMock.SetupSequence(r => r.Next(characters.Count - 1))
-            .Returns(0)
-            .Throws(new Exception(
-                "LoopTerminationForTestException"));
-
-        _randomMock.Setup(r => r.Next(1))
-            .Returns(0); // Selecting SkillAttack
-
-        _characterLookupServiceMock.Setup(c => c.FindCharactersByIds(new List<int> { 1, 2 })).ReturnsAsync(characters);
-
-        var DamageDealt = 10;
-        _attackPerformServiceMock.Setup(a =>
-                a.ExecuteAttack(It.IsAny<Character>(), It.IsAny<Character>(),
-                    It.IsAny<Func<Character, Character, int>>()))
-            .ReturnsAsync(new AttackResultDto { DamageDealt = DamageDealt });
+        var (characters, expectedAttackResult) = SetupForAttack(AttackType.Skill, attackerWithSkill);
 
         //Act
         await _fightService.Fight(fightRequestDto);
 
         //Assert
-        FightServiceTestHelper.AssertLog(_fightLoggerMock, characters, AttackType.Skill, Times.Once(), DamageDealt);
+        FightServiceTestHelper.AssertLog(_fightLoggerMock, characters, AttackType.Skill, Times.Once(),
+            expectedAttackResult.DamageDealt);
     }
-    
 }
