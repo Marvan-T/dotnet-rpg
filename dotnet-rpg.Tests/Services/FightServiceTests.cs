@@ -87,11 +87,7 @@ public class FightServiceTests
             CharacterIds = new List<int> { 1, 2 }
         };
 
-        var (characters, expectedAttackResult) = SetupForWeaponAttack();
-
-        _randomMock.SetupSequence(r => r.Next(It.IsAny<int>()))
-            .Returns(0) // For selecting AttackType.Weapon
-            .Returns(0); // For selecting the opponent
+        var (characters, expectedAttackResult) = SetupForAttack(AttackType.Weapon);
 
         //Act
         await _fightService.Fight(fightRequestDto);
@@ -103,34 +99,6 @@ public class FightServiceTests
         FightServiceTestHelper.AssertLogVictory(_fightLoggerMock, characters, Times.Once());
     }
 
-
-    private (List<Character>, AttackResultDto) SetupForWeaponAttack(int opponentHP = 5, int damageDealt = 5)
-    {
-        var characters = new List<Character>
-        {
-            new() { Id = 1, HitPoints = 100, Weapon = new Weapon(), Skills = new List<Skill>() },
-            new() { Id = 2, HitPoints = opponentHP, Weapon = null, Skills = new List<Skill>() }
-        };
-
-        _characterLookupServiceMock.Setup(c => c.FindCharactersByIds(new List<int> { 1, 2 })).ReturnsAsync(characters);
-
-        _attackServiceMock.Setup(a => a.DoWeaponAttack(characters[0], characters[1]))
-            .Callback((Character _, Character defender) => { defender.HitPoints = 0; });
-
-        var attackResultDto = new AttackResultDto { DamageDealt = damageDealt };
-
-        _attackPerformServiceMock.Setup(a => a.ExecuteAttack(
-                It.Is<Character>(c => c == characters[0]),
-                It.Is<Character>(c => c == characters[1]),
-                It.IsAny<Func<Character, Character, int>>()))
-            .Callback<Character, Character, Func<Character, Character, int>>((attacker, defender, attackFunc) =>
-                attackFunc(attacker,
-                    defender)) // If the `DoWeaponAttack` function is not invoked HitPoints won't be reset to 0, so no explicit check is required for the method reference we pass
-            .ReturnsAsync(new AttackResultDto { DamageDealt = damageDealt });
-
-        return (characters, attackResultDto);
-    }
-
     [Fact]
     public async Task Fight_ExecutesSkillAttackAndLogsVictory_WhenRandomlySelected()
     {
@@ -140,11 +108,7 @@ public class FightServiceTests
             CharacterIds = new List<int> { 1, 2 }
         };
 
-        var (characters, expectedAttackResult) = SetupForSkillAttack();
-
-        _randomMock.SetupSequence(r => r.Next(characters.Count - 1)).Returns(0); // For selecting the opponent
-        _randomMock.SetupSequence(r => r.Next(0)).Returns(1); // For Skill Attack Type
-        _randomMock.SetupSequence(r => r.Next(characters[1].Skills.Count)).Returns(0); //For selecting the skill
+        var (characters, expectedAttackResult) = SetupForAttack(AttackType.Skill);
 
         //Act
         await _fightService.Fight(fightRequestDto);
@@ -157,32 +121,6 @@ public class FightServiceTests
         FightServiceTestHelper.AssertLogVictory(_fightLoggerMock, characters, Times.Once());
     }
 
-    private (List<Character>, AttackResultDto) SetupForSkillAttack(int opponentHP = 5, int damageDealt = 5)
-    {
-        var SkillID = 1;
-        var characters = new List<Character>
-        {
-            new() { Id = 1, HitPoints = 100, Weapon = null, Skills = new List<Skill> { new() { Id = SkillID } } },
-            new() { Id = 2, HitPoints = opponentHP, Weapon = null, Skills = new List<Skill>() }
-        };
-
-        _characterLookupServiceMock.Setup(c => c.FindCharactersByIds(new List<int> { 1, 2 })).ReturnsAsync(characters);
-        _attackServiceMock.Setup(a => a.DoSkillAttack(characters[0], characters[1], SkillID))
-            .Callback((Character _, Character defender, int _) => { defender.HitPoints = 0; });
-
-        var attackResultDto = new AttackResultDto { DamageDealt = damageDealt };
-
-        _attackPerformServiceMock.Setup(a => a.ExecuteAttack(
-                It.Is<Character>(c => c == characters[0]),
-                It.Is<Character>(c => c == characters[1]),
-                It.IsAny<Func<Character, Character, int>>()))
-            .Callback<Character, Character, Func<Character, Character, int>>((attacker, defender, attackFunc) =>
-                attackFunc(attacker,
-                    defender)) // If the `DoSkillAttack` function is not invoked HitPoints won't be reset to 0, so no explicit check is required for the method reference we pass
-            .ReturnsAsync(attackResultDto);
-
-        return (characters, attackResultDto);
-    }
 
     [Fact]
     public async Task Fight_ExecutesSkipAttackAndLogsSkipTurn_WhenRandomlySelected()
@@ -193,13 +131,7 @@ public class FightServiceTests
             CharacterIds = new List<int> { 1, 2 }
         };
 
-        var characters = SetupForSkipAttack();
-
-        _randomMock.SetupSequence(r => r.Next(characters.Count - 1))
-            .Returns(0) // First call returns the opponent
-            .Throws(new Exception(
-                "LoopTerminationForTestException")); // Second call throws an exception to terminate the loop
-        _randomMock.SetupSequence(r => r.Next(0)).Returns(2); // For Skip Attack Type
+        var (characters, _) = SetupForAttack(AttackType.Skip);
 
         //Act
         await _fightService.Fight(fightRequestDto);
@@ -210,29 +142,55 @@ public class FightServiceTests
         FightServiceTestHelper.AssertLogVictory(_fightLoggerMock, characters, Times.Never());
     }
 
-    private List<Character> SetupForSkipAttack()
+    private (List<Character>, AttackResultDto?) SetupForAttack(AttackType type, int opponentHP = 5, int damageDealt = 5)
     {
+        var SkillID = 1;
         var characters = new List<Character>
         {
-            new() { Id = 1, HitPoints = 100, Weapon = null, Skills = new List<Skill>() },
             new()
             {
-                Id = 2, HitPoints = 5, Weapon = null, Skills = new List<Skill>()
-            }
+                Id = 1, HitPoints = 100, Weapon = type == AttackType.Weapon ? new Weapon() : null,
+                Skills = type == AttackType.Skill ? new List<Skill> { new() { Id = SkillID } } : new List<Skill>()
+            },
+            new() { Id = 2, HitPoints = opponentHP, Weapon = null, Skills = new List<Skill>() }
         };
 
         _characterLookupServiceMock.Setup(c => c.FindCharactersByIds(new List<int> { 1, 2 })).ReturnsAsync(characters);
 
+        switch (type)
+        {
+            case AttackType.Weapon:
+                _randomMock.SetupSequence(r => r.Next(It.IsAny<int>())).Returns(0).Returns(0);
+                _attackServiceMock.Setup(a => a.DoWeaponAttack(characters[0], characters[1]))
+                    .Callback((Character _, Character defender) => { defender.HitPoints = 0; });
+                break;
+            case AttackType.Skill:
+                _randomMock.SetupSequence(r => r.Next(characters.Count - 1)).Returns(0);
+                _randomMock.SetupSequence(r => r.Next(0)).Returns(1);
+                _randomMock.SetupSequence(r => r.Next(characters[1].Skills.Count)).Returns(0);
+                _attackServiceMock.Setup(a => a.DoSkillAttack(characters[0], characters[1], SkillID))
+                    .Callback((Character _, Character defender, int _) => { defender.HitPoints = 0; });
+                break;
+            case AttackType.Skip:
+                _randomMock.SetupSequence(r => r.Next(characters.Count - 1)).Returns(0)
+                    .Throws(new Exception("LoopTerminationForTestException"));
+                //since character does not have a weapon or skill, the Skip attack type should be chosen
+                // _randomMock.SetupSequence(r => r.Next(0)).Returns(2);
+                break;
+        }
+
+        var attackResultDto = new AttackResultDto { DamageDealt = damageDealt };
         _attackPerformServiceMock.Setup(a => a.ExecuteAttack(
                 It.Is<Character>(c => c == characters[0]),
                 It.Is<Character>(c => c == characters[1]),
                 It.IsAny<Func<Character, Character, int>>()))
             .Callback<Character, Character, Func<Character, Character, int>>((attacker, defender, attackFunc) =>
-                attackFunc(attacker, defender));
+                attackFunc(attacker, defender))
+            .ReturnsAsync(attackResultDto);
 
-        return characters;
+        return (characters, type == AttackType.Skip ? null : attackResultDto);
     }
-
+    
     [Fact]
     public async Task Fight_LogsWeaponAttack_WhenCharacterHasWeaponButNoSkills()
     {
@@ -311,34 +269,5 @@ public class FightServiceTests
         //Assert
         FightServiceTestHelper.AssertLog(_fightLoggerMock, characters, AttackType.Skill, Times.Once(), DamageDealt);
     }
-
-
-    [Fact]
-    public async Task Fight_LogsSkipAttack_WhenCharacterHasNoWeaponAndNoSkills()
-    {
-        // Arange
-        var fightRequestDto = new FightRequestDto
-        {
-            CharacterIds = new List<int> { 1, 2 }
-        };
-
-        var characters = new List<Character>
-        {
-            new() { Id = 1, HitPoints = 100, Weapon = null, Skills = new List<Skill>() },
-            new() { Id = 2, HitPoints = 100, Weapon = null, Skills = new List<Skill>() }
-        };
-
-        _randomMock.SetupSequence(r => r.Next(characters.Count - 1))
-            .Returns(0)
-            .Throws(new Exception(
-                "LoopTerminationForTestException"));
-
-        _characterLookupServiceMock.Setup(c => c.FindCharactersByIds(new List<int> { 1, 2 })).ReturnsAsync(characters);
-
-        //Act
-        await _fightService.Fight(fightRequestDto);
-
-        //Assert
-        FightServiceTestHelper.AssertLog(_fightLoggerMock, characters, AttackType.Skip, Times.Once());
-    }
+    
 }
