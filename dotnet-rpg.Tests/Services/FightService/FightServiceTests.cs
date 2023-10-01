@@ -240,7 +240,7 @@ public class FightServiceTests
                 break;
             case AttackType.Skip:
                 _randomMock.SetupSequence(r => r.Next(characters.Count - 1)).Returns(0)
-                    .Throws(new Exception("LoopTerminationForTestException"));
+                    .Throws(new Exception("LoopTerminationForTestException")); // to terminate the fighting loop 
                 // since character does not have a weapon or skill, the Skip attack type should be chosen
                 break;
         }
