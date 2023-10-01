@@ -7,13 +7,14 @@ namespace dotnet_rpg.Tests.Services;
 
 public class AttackPerformServiceTests
 {
+    private readonly AttackPerformService _attackPerformService;
     private readonly Mock<ICharacterLookupService> _characterLookupServiceMock = new();
     private readonly Mock<IRepository<Character>> _characterRepositoryMock = new();
-    private readonly AttackPerformService _attackPerformService;
 
     public AttackPerformServiceTests()
     {
-        _attackPerformService = new AttackPerformService(_characterLookupServiceMock.Object, _characterRepositoryMock.Object);
+        _attackPerformService =
+            new AttackPerformService(_characterLookupServiceMock.Object, _characterRepositoryMock.Object);
     }
 
     [Fact]
@@ -139,5 +140,78 @@ public class AttackPerformServiceTests
         result.Data.AttackerHp.Should().Be(attacker.HitPoints);
         result.Data.OpponentHp.Should().Be(opponent.HitPoints);
         result.Data.DamageDealt.Should().Be(10);
+    }
+
+    [Fact]
+    public async Task ExecuteAttack_WhenOpponentIsDefeated_ThrowsException()
+    {
+        // Arrange
+        var attacker = new Character { Name = "Attacker", HitPoints = 10 };
+        var defeatedOpponent = new Character { Name = "FallenOpponent", HitPoints = 0 };
+        Func<Character, Character, int> dummyStrategy = (a, b) => 5;
+
+        // Act
+        Func<Task> act = async () =>
+            await _attackPerformService.ExecuteAttack(attacker, defeatedOpponent, dummyStrategy);
+
+        // Assert
+        var exception = await Assert.ThrowsAsync<Exception>(act);
+        exception.Message.Should().Be("FallenOpponent has already been defeated");
+    }
+
+    [Fact]
+    public async Task ExecuteAttack_UpdatesFightStatistics()
+    {
+        // Arrange
+        var attacker = new Character { Name = "Attacker", HitPoints = 10, Fights = 0, Victories = 0 };
+        var opponent = new Character { Name = "Opponent", HitPoints = 10, Fights = 0, Defeats = 0 };
+        Func<Character, Character, int> dummyStrategy = (a, b) => 5;
+
+        // Act
+        await _attackPerformService.ExecuteAttack(attacker, opponent, dummyStrategy);
+
+        // Assert
+        attacker.Fights.Should().Be(1);
+        opponent.Fights.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task ExecuteAttack_WhenOpponentDefeatedAfterAttack_UpdatesVictoriesAndDefeats()
+    {
+        // Arrange
+        var attacker = new Character { Name = "Attacker", HitPoints = 10, Fights = 0, Victories = 0 };
+        var opponent = new Character
+            { Name = "Opponent", HitPoints = 1, Fights = 0, Defeats = 0 }; // will be defeated after a 5 damage attack
+        Func<Character, Character, int> dummyStrategy = (_, opponent) =>
+        {
+            opponent.HitPoints = -1;
+            return 5;
+        };
+
+        // Act
+        await _attackPerformService.ExecuteAttack(attacker, opponent, dummyStrategy);
+
+        // Assert
+        attacker.Victories.Should().Be(1);
+        opponent.Defeats.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task ExecuteAttack_ReturnsCorrectAttackResultDto()
+    {
+        // Arrange
+        var attacker = new Character { Name = "Attacker", HitPoints = 10 };
+        var opponent = new Character { Name = "Opponent", HitPoints = 10 };
+        Func<Character, Character, int> dummyStrategy = (a, b) => 5;
+
+        // Act
+        var result = await _attackPerformService.ExecuteAttack(attacker, opponent, dummyStrategy);
+
+        // Assert
+        result.Attacker.Should().Be(attacker.Name);
+        result.Opponent.Should().Be(opponent.Name);
+        result.AttackerHp.Should().Be(attacker.HitPoints);
+        result.OpponentHp.Should().Be(opponent.HitPoints);
+        result.DamageDealt.Should().Be(5);
     }
 }

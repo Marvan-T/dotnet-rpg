@@ -50,7 +50,7 @@ public class AttackPerformService : IAttackPerformService
         var damageDealt = attackStrategy.Invoke(attacker, opponent);
         UpdateFightStatistics(attacker, opponent);
 
-        return BuildAttackResult(attacker, opponent, damageDealt);
+        return BuildAttackResultDto(attacker, opponent, damageDealt);
     }
 
     private bool IsDefeated(Character character)
@@ -79,18 +79,6 @@ public class AttackPerformService : IAttackPerformService
     }
 
     private AttackResultDto BuildAttackResultDto(Character attacker, Character opponent, int damageDealt)
-    {
-        return new AttackResultDto
-        {
-            Attacker = attacker.Name,
-            Opponent = opponent.Name,
-            AttackerHp = attacker.HitPoints,
-            OpponentHp = opponent.HitPoints,
-            DamageDealt = damageDealt
-        };
-    }
-
-    private AttackResultDto BuildAttackResult(Character attacker, Character opponent, int damageDealt)
     {
         return new AttackResultDto
         {
