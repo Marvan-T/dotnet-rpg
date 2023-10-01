@@ -83,4 +83,38 @@ public class FightControllerTests
         // Assert
         CheckResponse(result, typeof(BadRequestObjectResult), expectedFailedServiceResponse);
     }
+    
+    [Fact]
+    public async Task Fight_WhenFightSucceeds_ReturnsOkWithFightResult()
+    {
+        // Arrange 
+        var fightRequest = new FightRequestDto(); 
+        var fightResult = new FightResultDto(); 
+        var expectedServiceResponse = CreateServiceResponse(fightResult);
+    
+        mockFightService.SetupMockServiceCall(service => service.Fight(fightRequest), expectedServiceResponse);
+
+        // Act
+        var result = await fightController.Fight(fightRequest);
+
+        // Assert
+        CheckResponse(result, typeof(OkObjectResult), expectedServiceResponse);
+    }
+
+    [Fact]
+    public async Task Fight_WhenFightFails_ReturnsBadRequest()
+    {
+        // Arrange
+        var fightRequest = new FightRequestDto();
+        var expectedFailedServiceResponse = CreateServiceResponse<FightResultDto>(null, false, "Fight failed for some reason");
+    
+        mockFightService.SetupMockServiceCall(service => service.Fight(fightRequest), expectedFailedServiceResponse);
+
+        // Act
+        var result = await fightController.Fight(fightRequest);
+
+        // Assert
+        CheckResponse(result, typeof(BadRequestObjectResult), expectedFailedServiceResponse);
+    }
+
 }
