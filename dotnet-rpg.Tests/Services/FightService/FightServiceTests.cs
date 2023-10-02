@@ -226,20 +226,20 @@ public class FightServiceTests
         switch (type)
         {
             case AttackType.Weapon:
-                _randomMock.Setup(r => r.Next(characters.Count - 1)).Returns(0);
+                _randomMock.Setup(r => r.Next(characters.Count - 1)).Returns(0); //selecting opponent
                 _randomMock.Setup(r => r.Next(GetAttackChoiceUpperLimit(characters[0]))).Returns(0); //Selecting Weapon attack
                 _attackServiceMock.Setup(a => a.DoWeaponAttack(characters[0], characters[1]))
                     .Callback((Character _, Character defender) => { defender.HitPoints = 0; });
                 break;
             case AttackType.Skill:
-                _randomMock.Setup(r => r.Next(characters.Count - 1)).Returns(0);
+                _randomMock.Setup(r => r.Next(characters.Count - 1)).Returns(0); //selecting opponent
                 _randomMock.Setup(r => r.Next(GetAttackChoiceUpperLimit(characters[0]))).Returns(GetSkillAttackChoiceValue(characters[0])); //Selecting Skill attack
                 _randomMock.Setup(r => r.Next(characters[1].Skills.Count)).Returns(0);
                 _attackServiceMock.Setup(a => a.DoSkillAttack(characters[0], characters[1], characters[0].Skills[0].Id))
                     .Callback((Character _, Character defender, int _) => { defender.HitPoints = 0; });
                 break;
             case AttackType.Skip:
-                _randomMock.SetupSequence(r => r.Next(characters.Count - 1)).Returns(0)
+                _randomMock.SetupSequence(r => r.Next(characters.Count - 1)).Returns(0) //selecting opponent
                     .Throws(new Exception("LoopTerminationForTestException")); // to terminate the fighting loop 
                 // since character does not have a weapon or skill, the Skip attack type should be chosen
                 break;
