@@ -1,5 +1,4 @@
 using dotnet_rpg.Dtos.Fight;
-using dotnet_rpg.Services.CharacterLookupService;
 
 namespace dotnet_rpg.Services.AttackPerformService;
 
@@ -41,6 +40,17 @@ public class AttackPerformService : IAttackPerformService
         }
 
         return response;
+    }
+
+    public async Task<AttackResultDto> ExecuteAttack(Character attacker, Character opponent,
+        Func<Character, Character, int> attackStrategy)
+    {
+        if (IsDefeated(opponent)) throw new Exception($"{opponent.Name} has already been defeated");
+
+        var damageDealt = attackStrategy.Invoke(attacker, opponent);
+        UpdateFightStatistics(attacker, opponent);
+
+        return BuildAttackResultDto(attacker, opponent, damageDealt);
     }
 
     private bool IsDefeated(Character character)

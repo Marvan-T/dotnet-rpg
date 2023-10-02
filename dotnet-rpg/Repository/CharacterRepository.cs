@@ -49,4 +49,13 @@ public class CharacterRepository : IRepository<Character>
     {
         return _context.SaveChangesAsync();
     }
+
+    public Task<List<Character>> GetByIdsAsync(List<int> characterIds)
+    {
+        return _context.Characters
+            .Include(c => c.Weapon)
+            .Include(c => c.Skills)
+            .Where(c => characterIds.Contains(c.Id))
+            .ToListAsync();
+    }
 }

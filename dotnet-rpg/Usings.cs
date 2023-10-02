@@ -1,3 +1,5 @@
+global using dotnet_rpg.Services.AttackService;
+global using dotnet_rpg.Services.FightLogger;
 global using dotnet_rpg.Services.AttackPerformService;
 global using dotnet_rpg.Services.CharacterLookupService;
 global using dotnet_rpg.Services.SkillService;

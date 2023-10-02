@@ -1,6 +1,6 @@
 ﻿namespace dotnet_rpg.Repository;
 
-public class  SkillRepository : IRepository<Skill>
+public class SkillRepository : IRepository<Skill>
 {
     private readonly DataContext _dataContext;
 
@@ -37,5 +37,10 @@ public class  SkillRepository : IRepository<Skill>
     public Task SaveChangesAsync()
     {
         return _dataContext.SaveChangesAsync();
+    }
+
+    public Task<List<Skill>> GetByIdsAsync(List<int> ids)
+    {
+        throw new NotImplementedException();
     }
 }
