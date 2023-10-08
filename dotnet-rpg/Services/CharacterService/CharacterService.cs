@@ -1,4 +1,3 @@
-using dotnet_rpg.Services.CharacterLookupService;
 using dotnet_rpg.Services.Helper;
 
 namespace dotnet_rpg.Services.CharacterService;
