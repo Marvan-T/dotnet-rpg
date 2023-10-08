@@ -1,4 +1,5 @@
 using dotnet_rpg.Services.CharacterLookupService;
+using dotnet_rpg.Services.Helper;
 
 namespace dotnet_rpg.Services.SkillService;
 
@@ -32,8 +33,7 @@ public class SkillService : ISkillService
         }
         catch (Exception e)
         {
-            serviceResponse.Success = false;
-            serviceResponse.Message = e.Message;
+            ServiceResponseHelper.HandleServiceException(serviceResponse, e);
         }
 
         return serviceResponse;

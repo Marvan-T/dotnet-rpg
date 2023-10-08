@@ -1,4 +1,5 @@
 using dotnet_rpg.Dtos.Fight;
+using dotnet_rpg.Services.Helper;
 using dotnet_rpg.Specifications.CharacterSpecifications;
 
 namespace dotnet_rpg.Services.HighScoreService;
@@ -19,15 +20,19 @@ public class HighScoreService : IHighScoreService
         var serviceResponse = new ServiceResponse<List<GetHighScoreDto>>();
         try
         {
-            var spec = new CharacterSortedByScoreSpecification();
-            var characters = await _characterRepository.ListAsync(spec);
+            var characters = await FetchCharactersSortedByScore();
             serviceResponse.Data = _mapper.Map<List<GetHighScoreDto>>(characters);
         }
         catch (Exception e)
         {
-            serviceResponse.Success = false;
-            serviceResponse.Message = e.Message;
+            ServiceResponseHelper.HandleServiceException(serviceResponse, e);
         }
         return serviceResponse;
+    }
+    
+    private async Task<IReadOnlyList<Character>> FetchCharactersSortedByScore()
+    {
+        var spec = new CharacterSortedByScoreSpecification();
+        return await _characterRepository.ListAsync(spec);
     }
 }
