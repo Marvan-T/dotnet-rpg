@@ -1,4 +1,6 @@
-﻿namespace dotnet_rpg.Repository;
+﻿using dotnet_rpg.Specifications.Interfaces;
+
+namespace dotnet_rpg.Repository;
 
 public interface IRepository<T> where T : class
 {
@@ -9,4 +11,5 @@ public interface IRepository<T> where T : class
     void Update(T entity);
     Task SaveChangesAsync();
     Task<List<T>> GetByIdsAsync(List<int> ids);
+    Task<List<T>> ListAsync(ISpecification<T> spec);
 }

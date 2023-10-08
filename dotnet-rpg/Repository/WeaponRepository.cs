@@ -1,46 +1,13 @@
 ﻿namespace dotnet_rpg.Repository;
 
-public class WeaponRepository : IRepository<Weapon>
+public class WeaponRepository : BaseRepository<Weapon>
 {
+    private readonly DataContext _dataContext;
     private readonly DataContext _context;
 
-    public WeaponRepository(DataContext dataContext)
+    public WeaponRepository(DataContext dataContext) : base(dataContext)
     {
-        _context = dataContext;
+        _dataContext = dataContext;
     }
-
-    public Task<Weapon?> GetByIdAsync(int id)
-    {
-        throw new NotImplementedException();
-    }
-
-    public Task<List<Weapon>> GetAllAsync()
-    {
-        throw new NotImplementedException();
-    }
-
-    public void Add(Weapon weapon)
-    {
-        _context.Add(weapon);
-    }
-
-    public void Delete(Weapon entity)
-    {
-        throw new NotImplementedException();
-    }
-
-    public void Update(Weapon entity)
-    {
-        throw new NotImplementedException();
-    }
-
-    public Task SaveChangesAsync()
-    {
-        return _context.SaveChangesAsync();
-    }
-
-    public Task<List<Weapon>> GetByIdsAsync(List<int> ids)
-    {
-        throw new NotImplementedException();
-    }
+    
 }

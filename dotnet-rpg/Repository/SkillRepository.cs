@@ -1,46 +1,11 @@
 ﻿namespace dotnet_rpg.Repository;
 
-public class SkillRepository : IRepository<Skill>
+public class SkillRepository : BaseRepository<Skill>
 {
     private readonly DataContext _dataContext;
 
-    public SkillRepository(DataContext dataContext)
+    public SkillRepository(DataContext dataContext) : base(dataContext)
     {
         _dataContext = dataContext;
-    }
-
-    public Task<Skill?> GetByIdAsync(int id)
-    {
-        return _dataContext.Skills.FirstOrDefaultAsync(c => c.Id == id);
-    }
-
-    public Task<List<Skill>> GetAllAsync()
-    {
-        throw new NotImplementedException();
-    }
-
-    public void Add(Skill entity)
-    {
-        throw new NotImplementedException();
-    }
-
-    public void Delete(Skill entity)
-    {
-        throw new NotImplementedException();
-    }
-
-    public void Update(Skill entity)
-    {
-        throw new NotImplementedException();
-    }
-
-    public Task SaveChangesAsync()
-    {
-        return _dataContext.SaveChangesAsync();
-    }
-
-    public Task<List<Skill>> GetByIdsAsync(List<int> ids)
-    {
-        throw new NotImplementedException();
     }
 }
