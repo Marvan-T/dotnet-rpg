@@ -1,6 +1,6 @@
 ﻿namespace dotnet_rpg.Models;
 
-public class Weapon
+public class Weapon : IEntityWithId
 {
     public int Id { get; set; }
     public string Name { get; set; }

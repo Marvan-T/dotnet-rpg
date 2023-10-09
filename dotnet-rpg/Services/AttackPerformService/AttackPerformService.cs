@@ -1,4 +1,5 @@
 using dotnet_rpg.Dtos.Fight;
+using dotnet_rpg.Services.Helper;
 
 namespace dotnet_rpg.Services.AttackPerformService;
 
@@ -35,8 +36,7 @@ public class AttackPerformService : IAttackPerformService
         }
         catch (Exception e)
         {
-            response.Success = false;
-            response.Message = e.Message;
+            ServiceResponseHelper.HandleServiceException(response, e);
         }
 
         return response;
