@@ -1,4 +1,4 @@
-using dotnet_rpg.Services.HighScoreService;
+using dotnet_rpg.Dtos.Fight;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -17,7 +17,7 @@ public class ScoreController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<ServiceResponse<List<GetCharacterResponseDto>>>> GetCharacterScores()
+    public async Task<ActionResult<ServiceResponse<List<GetHighScoreDto>>>> GetCharacterScores()
     {
         var response = await _highScoreService.GetCharactersByScore();
         if (!response.Success) return BadRequest(response);
