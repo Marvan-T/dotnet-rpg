@@ -1,4 +1,4 @@
-# void vs returning task (perils of not using async/await)
+# `void` vs returning `Task` (perils of not using `async/await` correctly)
 
 
 I ran into an error and here is the step by step of error:
