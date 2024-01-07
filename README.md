@@ -1,6 +1,6 @@
-# dotnet-rpg
-
 [![Unit Tests](https://github.com/Marvan-T/dotnet-rpg/actions/workflows/dotnet.yml/badge.svg)](https://github.com/Marvan-T/dotnet-rpg/actions/workflows/dotnet.yml)
+
+# dotnet-rpg
 
 This is a personal project that I've built to enhance my skills in ASP.NET Core following a Udemy course. The project is a role-playing game (RPG) API that provides endpoints for managing characters, weapons, and skills in the game.
 
