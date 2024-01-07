@@ -18,11 +18,10 @@ I've learned a lot about ASP.NET Core, Entity Framework Core, and other related 
 
 While the core functionality of this project is based on the Udemy course, I've incorporated several enhancements based on my own insights and experiences:
 
-- Unit Tests: I've added unit tests following the best practices that I've adhered to in my previous projects. 
-- Design Patterns: The project employs a few design patterns, including the Strategy and Specification patterns. While these might seem overkill for a project of this scale, they were implemented as a learning experience to understand their practical applications.
-- Architecture Design Records (ADRs): I've utilized ADRs to document a few key decisions made during the development process. You can find these in the ADR directory.
-- Repository Pattern: To abstract the data layer and ensure a clean separation of concerns, I've implemented the Repository pattern.
-
+- **Unit Tests**: I've added unit tests following the best practices that I've adhered to in my previous projects. 
+- **Design Patterns**: The project employs a few design patterns, including the Strategy and Specification patterns. While these might seem overkill for a project of this scale, they were implemented as a learning experience to understand their practical applications.
+- **Architecture Design Records (ADRs)**: I've utilized ADRs to document a few key decisions made during the development process. You can find these in the ADR directory.
+- **Repository Pattern**: To abstract the data layer and ensure a clean separation of concerns, I've implemented the Repository pattern.
 
 ## How to Run
 
